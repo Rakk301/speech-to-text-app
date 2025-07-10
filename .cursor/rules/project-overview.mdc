@@ -1,0 +1,88 @@
+---
+alwaysApply: true
+---
+
+# Speech-to-Text Application Overview
+
+This is a macOS-native speech-to-text utility app that runs offline, triggered by a global hotkey (⌘⇧S), transcribes real-time microphone input, applies LLM-based postprocessing, then pastes the final output at the cursor.
+
+## 🏗️ System Architecture
+
+### Core Components
+- **Swift**: System integration (hotkeys, audio capture, paste operations)
+- **Python**: ML inference (Whisper STT, LLM postprocessing)
+- **Bridge**: Subprocess communication between Swift and Python
+
+### Data Flow
+1. Global hotkey pressed → Swift records audio
+2. Swift saves audio to file → calls Python script
+3. Python runs Whisper STT → LLM postprocessing → stdout
+4. Swift receives text → pastes at cursor → logs with timestamp
+
+## 📁 Expected Project Structure
+```
+Speech To Text App/
+├── Swift/
+│   ├── SpeechToTextApp.swift      # Main Swift app
+│   ├── AudioRecorder.swift        # AVAudioEngine wrapper
+│   ├── HotkeyManager.swift        # Global hotkey handling
+│   └── PasteManager.swift         # Clipboard and paste operations
+├── Python/
+│   ├── transcribe.py              # Main STT script
+│   ├── whisper_wrapper.py         # Whisper integration
+│   ├── llm_processor.py           # LLM postprocessing
+│   └── config.py                  # Configuration management
+├── Config/
+│   └── settings.yaml              # User-configurable settings
+└── Logs/
+    └── transcriptions.log         # Timestamped transcription logs
+```
+
+## 🎯 Development Principles
+- Keep Swift side lean and focused on system integration
+- Use Python for all ML/LLM operations
+- Maintain loose coupling via subprocess communication
+- CLI-style Python scripts for easy testing and iteration
+---
+# Speech-to-Text Application Overview
+
+This is a macOS-native speech-to-text utility app that runs offline, triggered by a global hotkey (⌘⇧S), transcribes real-time microphone input, applies LLM-based postprocessing, then pastes the final output at the cursor.
+
+## 🏗️ System Architecture
+
+### Core Components
+- **Swift**: System integration (hotkeys, audio capture, paste operations)
+- **Python**: ML inference (Whisper STT, LLM postprocessing)
+- **Bridge**: Subprocess communication between Swift and Python
+
+### Data Flow
+1. Global hotkey pressed → Swift records audio
+2. Swift saves audio to file → calls Python script
+3. Python runs Whisper STT → LLM postprocessing → stdout
+4. Swift receives text → pastes at cursor → logs with timestamp
+
+## 📁 Expected Project Structure
+```
+Speech To Text App/
+├── Swift/
+│   ├── SpeechToTextApp.swift      # Main Swift app
+│   ├── AudioRecorder.swift        # AVAudioEngine wrapper
+│   ├── HotkeyManager.swift        # Global hotkey handling
+│   └── PasteManager.swift         # Clipboard and paste operations
+├── Python/
+│   ├── transcribe.py              # Main STT script
+│   ├── whisper_wrapper.py         # Whisper integration
+│   ├── llm_processor.py           # LLM postprocessing
+│   └── config.py                  # Configuration management
+├── Config/
+│   └── settings.yaml              # User-configurable settings
+└── Logs/
+    └── transcriptions.log         # Timestamped transcription logs
+```
+
+## 🎯 Development Principles
+- Keep Swift side lean and focused on system integration
+- Use Python for all ML/LLM operations
+- Maintain loose coupling via subprocess communication
+- CLI-style Python scripts for easy testing and iteration
+---

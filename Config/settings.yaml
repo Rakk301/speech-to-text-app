@@ -1,0 +1,35 @@
+# Speech-to-Text Application Configuration
+
+# Audio Settings
+audio:
+  sample_rate: 16000
+  channels: 1
+  format: wav
+  chunk_duration: 3  # seconds
+
+# Whisper Settings
+whisper:
+  model: "base"  # base, small, medium, large
+  language: "en"
+  task: "transcribe"
+  temperature: 0.0
+
+# LLM Settings
+llm:
+  enabled: true
+  model: "llama2"
+  temperature: 0.1
+  max_tokens: 100
+  prompt: null  # Use default prompt
+
+# Hotkey Settings
+hotkey:
+  key_code: 1  # S key
+  modifiers: ["command", "shift"]
+
+# Logging Settings
+logging:
+  enabled: true
+  log_file: "Logs/transcriptions.log"
+  max_file_size: "10MB"
+  backup_count: 5 
