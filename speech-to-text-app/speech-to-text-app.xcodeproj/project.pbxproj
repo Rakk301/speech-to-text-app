@@ -268,7 +268,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "speech-to-text-app/Info.plist";
+
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
