@@ -14,7 +14,6 @@
 		00A0B0272E242AE20071BD4E /* Exceptions for "speech-to-text-app" folder in "speech-to-text-app" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				PasteManager.swift,
 				PythonBridge.swift,
 			);
 			target = 00A0B0022E2426DA0071BD4E /* speech-to-text-app */;
@@ -268,7 +267,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (

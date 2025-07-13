@@ -9,7 +9,7 @@ audio:
 
 # Whisper Settings
 whisper:
-  model: "base"  # base, small, medium, large
+  model: "large"  # Change from "base" to "large"
   language: "en"
   task: "transcribe"
   temperature: 0.0

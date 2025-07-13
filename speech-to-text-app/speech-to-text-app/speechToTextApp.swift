@@ -30,7 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var audioRecorder: AudioRecorder?
     private var hotkeyManager: HotkeyManager?
-    // private var pasteManager: PasteManager?
+    private var pasteManager: PasteManager?
     // private var pythonBridge: PythonBridge?
     private var logger: Logger?
     
@@ -51,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger = Logger()
         audioRecorder = AudioRecorder()
         hotkeyManager = HotkeyManager()
-        // pasteManager = PasteManager()
+        pasteManager = PasteManager()
         // pythonBridge = PythonBridge()
         
         // Set up hotkey callback
@@ -77,7 +77,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Event Handlers
     @objc private func menuBarClicked() {
         logger?.log("Menu bar clicked!")
-        handleHotkeyPress()
+        showTestOptions()
+    }
+    
+    private func showTestOptions() {
+        let alert = NSAlert()
+        alert.messageText = "Test Paste Functionality"
+        alert.informativeText = "Choose which test to run:"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Full Paste Test")
+        alert.addButton(withTitle: "Clipboard Only Test")
+        alert.addButton(withTitle: "Cancel")
+        
+        let response = alert.runModal()
+        switch response {
+        case .alertFirstButtonReturn:
+            testPasteFunctionality()
+        case .alertSecondButtonReturn:
+            testClipboardOnly()
+        default:
+            break
+        }
     }
     
     private func handleHotkeyPress() {
@@ -178,6 +198,64 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         alert.addButton(withTitle: "OK")
         alert.runModal()
     }
+    
+    // TESING - HARDCODED
+    private func testPasteFunctionality() {
+        let testText = "Hello from Speech-to-Text App! This is a test of the paste functionality. 🎤"
+        
+        logger?.log("Testing paste functionality with text: \(testText)")
+        
+        pasteManager?.pasteText(testText) { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.logger?.log("✅ Text pasted successfully!")
+                    self?.showSuccessAlert("Text pasted successfully!")
+                } else {
+                    self?.logger?.log("❌ Failed to paste text", level: .error)
+                    self?.showErrorAlert("Failed to paste text")
+                }
+            }
+        }
+    }
+    
+    // Add clipboard-only test method
+    private func testClipboardOnly() {
+        let testText = "Hello from Speech-to-Text App! This is a clipboard-only test. 🎤"
+        
+        logger?.log("Testing clipboard-only functionality with text: \(testText)")
+        
+        // Save original clipboard content
+        let originalContent = NSPasteboard.general.string(forType: .string)
+        
+        // Copy test text to clipboard
+        NSPasteboard.general.clearContents()
+        if NSPasteboard.general.setString(testText, forType: .string) {
+            logger?.log("✅ Text copied to clipboard successfully!")
+            showSuccessAlert("Text copied to clipboard! Press Cmd+V to paste it manually.")
+            
+            // Restore original clipboard after a delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                if let original = originalContent {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(original, forType: .string)
+                    self.logger?.log("✅ Original clipboard content restored")
+                }
+            }
+        } else {
+            logger?.log("❌ Failed to copy text to clipboard", level: .error)
+            showErrorAlert("Failed to copy text to clipboard")
+        }
+    }
+    
+    private func showSuccessAlert(_ message: String) {
+        let alert = NSAlert()
+        alert.messageText = "Success"
+        alert.informativeText = message
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
+    // TESTING - END
     
     // MARK: - Cleanup
     private func cleanup() {
