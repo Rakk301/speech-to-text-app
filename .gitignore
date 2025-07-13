@@ -6,4 +6,19 @@ __pycache__/
 .env
 .venv
 
+# Logs
 Logs/
+
+# Xcode user data
+speech-to-text-app/speech-to-text-app.xcodeproj
+speech-to-text-app/speech-to-text-app.xcodeproj/xcuserdata/
+speech-to-text-app/speech-to-text-app.xcodeproj/project.xcworkspace/xcuserdata/
+
+# macOS
+.DS_Store
+
+# Build artifacts
+*.app
+build/
+DerivedData/
+

@@ -1,0 +1,20 @@
+---
+description:
+globs: .swift
+alwaysApply: false
+---
+# Swift Explanation Style Guide
+
+When explaining Swift code to the user:
+- **Assume no prior Swift experience**: Avoid jargon or explain it when used.
+- **Break down code step-by-step**: Explain what each line or block does in plain English.
+- **Highlight best practices**: Whenever relevant, point out why something is done a certain way (e.g., memory management, error handling, naming conventions).
+- **Teach as you go**: Use explanations as an opportunity to introduce Swift/macOS development concepts (e.g., what is a closure, why use optionals, what is a delegate).
+- **Use analogies and real-world examples**: Make abstract concepts relatable.
+- **Encourage questions**: Remind the user they can ask for clarification on any point.
+- **Keep explanations concise and friendly**: Avoid overwhelming detail, but provide enough context for understanding.
+- **Show how code fits into the bigger picture**: Relate code snippets to the overall app architecture or user experience.
+
+_Example prompt:_
+> "Here's what this function does, step by step. If you see a term you don't know, let me know and I can explain it!"
+

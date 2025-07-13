@@ -1,12 +1,19 @@
 [project]
-name = "python"
+name = "speech-to-text-python"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Python components for speech-to-text application"
 requires-python = ">=3.11"
 dependencies = [
     "numpy>=2.3.1",
     "pyyaml>=6.0.2",
     "requests>=2.32.4",
     "whisper>=1.1.10",
+    "soundfile>=0.12.1",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["config", "transcribe", "whisper_wrapper", "llm_processor"]

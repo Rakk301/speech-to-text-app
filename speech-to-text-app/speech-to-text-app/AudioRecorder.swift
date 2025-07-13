@@ -2,15 +2,12 @@ import AVFoundation
 import Foundation
 
 enum AudioRecorderError: Error, LocalizedError {
-    case permissionDenied
     case audioSessionFailed
     case recordingFailed
     case fileCreationFailed
     
     var errorDescription: String? {
         switch self {
-        case .permissionDenied:
-            return "Microphone permission is required"
         case .audioSessionFailed:
             return "Failed to configure audio session"
         case .recordingFailed:
@@ -29,15 +26,9 @@ class AudioRecorder {
     private var audioFile: AVAudioFile?
     private var recordingURL: URL?
     
-    // Whisper-compatible audio settings
-    private let sampleRate: Double = 16000
-    private let channels: AVAudioChannelCount = 1
-    private let format = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1)!
-    
     // MARK: - Initialization
     init() {
         inputNode = audioEngine.inputNode
-        setupAudioSession()
     }
     
     deinit {
@@ -45,10 +36,10 @@ class AudioRecorder {
     }
     
     // MARK: - Public Methods
+    
+    /// Start recording - macOS will automatically request microphone permission if needed
     func startRecording() throws {
-        guard AVAudioSession.sharedInstance().recordPermission == .granted else {
-            throw AudioRecorderError.permissionDenied
-        }
+        print("🎤 Starting recording...")
         
         // Create temporary audio file
         recordingURL = createTemporaryAudioFile()
@@ -56,6 +47,13 @@ class AudioRecorder {
             throw AudioRecorderError.fileCreationFailed
         }
         
+        print("💾 Recording to: \(url.path)")
+        
+        // Get the native format from the input node
+        let format = inputNode.inputFormat(forBus: 0)
+        print("📊 Using format: \(format)")
+        
+        // Create audio file
         do {
             audioFile = try AVAudioFile(forWriting: url, settings: format.settings)
         } catch {
@@ -67,17 +65,21 @@ class AudioRecorder {
             self?.handleAudioBuffer(buffer)
         }
         
-        // Start audio engine
+        // Start audio engine - this will trigger permission request if needed
         do {
             try audioEngine.start()
+            print("✅ Recording started successfully")
         } catch {
             inputNode.removeTap(onBus: 0)
+            print("❌ Audio engine start failed: \(error)")
             throw AudioRecorderError.recordingFailed
         }
     }
     
     func stopRecording() -> URL? {
         guard audioEngine.isRunning else { return nil }
+        
+        print("🛑 Stopping recording...")
         
         // Stop audio engine
         audioEngine.stop()
@@ -89,19 +91,23 @@ class AudioRecorder {
         // Return the recorded file URL
         let url = recordingURL
         recordingURL = nil
+        
+        if let url = url {
+            print("✅ Recording completed: \(url.path)")
+            
+            // Check file size
+            let fileManager = FileManager.default
+            if fileManager.fileExists(atPath: url.path) {
+                let attributes = try? fileManager.attributesOfItem(atPath: url.path)
+                let fileSize = attributes?[.size] as? Int64 ?? 0
+                print("📁 File size: \(fileSize) bytes")
+            }
+        }
+        
         return url
     }
     
     // MARK: - Private Methods
-    private func setupAudioSession() {
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.record, mode: .default)
-            try audioSession.setActive(true)
-        } catch {
-            print("Failed to setup audio session: \(error)")
-        }
-    }
     
     private func createTemporaryAudioFile() -> URL? {
         let tempDir = FileManager.default.temporaryDirectory
@@ -116,7 +122,7 @@ class AudioRecorder {
         do {
             try audioFile.write(from: buffer)
         } catch {
-            print("Failed to write audio buffer: \(error)")
+            print("❌ Failed to write audio buffer: \(error)")
         }
     }
     
