@@ -1,0 +1,126 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+# Conventional Git Commit Messages
+
+## Commit Message Format
+Use conventional commit format: `type(scope): description`
+
+### Types
+- **feat**: New feature
+- **fix**: Bug fix
+- **refactor**: Code refactoring (no functional changes)
+- **test**: Adding or updating tests
+- **docs**: Documentation changes
+- **style**: Code style changes (formatting, semicolons, etc.)
+- **perf**: Performance improvements
+- **ci**: CI/CD changes
+- **chore**: Maintenance tasks, dependencies, etc.
+
+### Scopes
+Based on the Borex codebase structure:
+- **ui**: Frontend components and pages
+- **api**: API routes and server endpoints
+- **services**: Service layer (AttomAPIService, TavilyService, etc.)
+- **types**: Type definitions and interfaces
+- **validation**: Input validation and schemas
+- **tests**: Test files and test utilities
+- **config**: Configuration files (Jest, Next.js, etc.)
+
+### Examples
+
+#### Refactoring Tasks
+```
+refactor(ui): rename AddressSearch to PropertyOwnershipSearch
+refactor(api): apply early return pattern to validateClaim route
+refactor(services): rename ToolSelectorService to PropertyDataService
+refactor(types): move ValidationResult to shared types
+```
+
+#### New Features
+```
+feat(ui): add automatic tool selection to address search
+feat(validation): implement Zod schemas for claim validation
+feat(api): add caching for claim validation results
+```
+
+#### Bug Fixes
+```
+fix(ui): resolve date picker day offset issue
+fix(api): fix cache invalidation in claim validation
+fix(services): handle empty address in ToolSelectorService
+```
+
+#### Test Updates
+```
+test(services): add tests for PropertyDataService
+test(ui): add component tests for ClaimValidationForm
+test(api): add integration tests for validateClaim endpoint
+```
+
+#### Documentation
+```
+docs: update refactoring plan with test audit results
+docs(api): add API documentation for new endpoints
+```
+
+### Commit Message Guidelines
+
+1. **Use present tense**: "add" not "added"
+2. **Use imperative mood**: "move" not "moves"
+3. **Keep first line under 72 characters**
+4. **Use body for detailed explanations** (separated by blank line)
+5. **Reference issues**: "Closes #123" or "Fixes #456"
+
+### Examples with Body
+```
+refactor(ui): extract form logic into custom hooks
+
+- Create useClaimValidation hook
+- Separate Excel upload from form validation
+- Improve component composition and readability
+
+Closes #789
+```
+
+```
+fix(api): resolve claim validation caching issue
+
+- Debug cache key generation in validation flow
+- Add cache hit/miss logging
+- Fix cache invalidation logic
+
+Fixes #456
+```
+
+### Special Cases for Borex Refactoring
+
+#### Pre-refactoring Safety
+```
+chore: establish testing baseline for refactoring
+chore: commit current changes before starting refactor
+```
+
+#### Architecture Changes
+```
+refactor(architecture): unify AddressSearch and ToolSelectorService
+refactor(architecture): eliminate duplicate ValidationResult types
+refactor(architecture): standardize AI model usage across services
+```
+
+#### Component Organization
+```
+refactor(ui): organize component directory structure
+refactor(ui): move primitive components to ui/ subdirectory
+refactor(ui): create forms/, search/, validation/ subdirectories
+```
+
+### Validation Rules
+- Always use conventional commit format
+- Include appropriate scope for the changed files
+- Use descriptive but concise descriptions
+- Reference related issues when applicable
+- Keep commits focused on single logical changes
