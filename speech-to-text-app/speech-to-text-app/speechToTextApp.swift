@@ -29,7 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Properties
     private var statusItem: NSStatusItem?
     private var audioRecorder: AudioRecorder?
-    // private var hotkeyManager: HotkeyManager?
+    private var hotkeyManager: HotkeyManager?
     // private var pasteManager: PasteManager?
     // private var pythonBridge: PythonBridge?
     private var logger: Logger?
@@ -50,14 +50,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupComponents() {
         logger = Logger()
         audioRecorder = AudioRecorder()
-        // hotkeyManager = HotkeyManager()
+        hotkeyManager = HotkeyManager()
         // pasteManager = PasteManager()
         // pythonBridge = PythonBridge()
         
-        // // Set up hotkey callback
-        // hotkeyManager?.onHotkeyPressed = { [weak self] in
-        //     self?.handleHotkeyPress()
-        // }
+        // Set up hotkey callback
+        hotkeyManager?.onHotkeyPressed = { [weak self] in
+            self?.handleHotkeyPress()
+        }
         
         logger?.log("App components initialized")
     }
