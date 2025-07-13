@@ -16,8 +16,9 @@ whisper:
 
 # LLM Settings
 llm:
+  base_url: "http://localhost:11434"
   enabled: true
-  model: "llama2"
+  model: "llama3.1"
   temperature: 0.1
   max_tokens: 100
   prompt: null  # Use default prompt

@@ -21,20 +21,11 @@ class LLMProcessor:
         """
         self.logger = logging.getLogger(__name__)
         self.config = config
-        self.base_url = "http://localhost:11434"  # Ollama default
-        self.model = config.get("model", "llama2")
+        self.base_url = config.get("base_url", "http://localhost:11434")  # Ollama default
+        self.model = config.get("model", "llama3.1")
         self.temperature = config.get("temperature", 0.1)
-        self.max_tokens = config.get("max_tokens", 100)
+        self.max_tokens = config.get("max_tokens", 2500)
         
-        # Default prompt for text cleanup
-        self.default_prompt = """
-        Please clean up and improve the following transcription. 
-        Fix grammar, punctuation, and formatting while preserving the original meaning.
-        Make it more readable and professional.
-        
-        Transcription: {text}
-        
-        Improved text:"""
     
     def _check_ollama_connection(self) -> bool:
         """Check if Ollama is running and accessible."""
@@ -48,7 +39,7 @@ class LLMProcessor:
     def _generate_prompt(self, text: str) -> str:
         """Generate prompt for LLM processing."""
         # Use custom prompt from config if available
-        custom_prompt = self.config.get("prompt", self.default_prompt)
+        custom_prompt = self.config.get("prompt")
         return custom_prompt.format(text=text)
     
     def process(self, text: str) -> str:
@@ -112,18 +103,3 @@ class LLMProcessor:
             # Return original text on failure
             return text
     
-    def get_model_info(self) -> Dict[str, Any]:
-        """Get information about available LLM models."""
-        try:
-            response = requests.get(f"{self.base_url}/api/tags", timeout=5)
-            if response.status_code == 200:
-                models = response.json().get("models", [])
-                return {
-                    "available_models": [model["name"] for model in models],
-                    "current_model": self.model,
-                    "connection": "available"
-                }
-            else:
-                return {"connection": "error", "status_code": response.status_code}
-        except Exception as e:
-            return {"connection": "unavailable", "error": str(e)} 
