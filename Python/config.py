@@ -22,15 +22,13 @@ class Config:
         self.logger = logging.getLogger(__name__)
         self.config_path = Path(config_path)
         self.config = self._load_config()
-        self._validate_config()
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from YAML file."""
+        if not self.config_path.exists():
+            raise FileNotFoundError(f"Config file not found: {self.config_path}")
+        
         try:
-            if not self.config_path.exists():
-                self.logger.warning(f"Config file not found: {self.config_path}")
-                return None
-            
             with open(self.config_path, 'r') as f:
                 config = yaml.safe_load(f)
             
@@ -38,6 +36,20 @@ class Config:
             return config
             
         except Exception as e:
-            self.logger.error(f"Failed to load configuration: {e}")
-            return None
+            raise Exception(f"Failed to load configuration: {e}")
+    
+    @property
+    def whisper(self) -> Dict[str, Any]:
+        """Get Whisper configuration."""
+        return self.config.get("whisper", {})
+    
+    @property
+    def llm(self) -> Dict[str, Any]:
+        """Get LLM configuration."""
+        return self.config.get("llm", {})
+    
+    @property
+    def audio(self) -> Dict[str, Any]:
+        """Get audio configuration."""
+        return self.config.get("audio", {})
         

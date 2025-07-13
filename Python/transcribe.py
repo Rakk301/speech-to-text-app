@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from whisper_wrapper import WhisperWrapper
-from llm_processor import LLMProcessor
+# from llm_processor import LLMProcessor  # Commented out
 from config import Config
 
 
@@ -31,7 +31,7 @@ def transcribe_audio(audio_path: str, config: Config) -> str:
         config: Configuration object
         
     Returns:
-        Processed transcription text
+        Raw transcription text from Whisper
     """
     logger = logging.getLogger(__name__)
     
@@ -42,13 +42,15 @@ def transcribe_audio(audio_path: str, config: Config) -> str:
         # Transcribe audio
         raw_transcription = whisper.transcribe(audio_path)
         
-        # Post-process with LLM
-        llm = LLMProcessor(config.llm)
-        logger.info("Post-processing with LLM")
-        processed_text = llm.process(raw_transcription)
-        logger.info(f"Processed text: {processed_text}")
+        # Comment out LLM processing for now
+        # llm = LLMProcessor(config.llm)
+        # logger.info("Post-processing with LLM")
+        # processed_text = llm.process(raw_transcription)
+        # logger.info(f"Processed text: {processed_text}")
         
-        return processed_text
+        # Return raw Whisper transcription
+        logger.info(f"Raw transcription: {raw_transcription}")
+        return raw_transcription
         
     except Exception as e:
         logger.error(f"Transcription failed: {e}")
