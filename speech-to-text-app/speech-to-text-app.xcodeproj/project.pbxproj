@@ -16,10 +16,8 @@
 			membershipExceptions = (
 				HotkeyManager.swift,
 				Logger.swift,
-				NotificationView.swift,
 				PasteManager.swift,
 				PythonBridge.swift,
-				SettingsView.swift,
 			);
 			target = 00A0B0022E2426DA0071BD4E /* speech-to-text-app */;
 		};
@@ -273,11 +271,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.github.Rakk301.speech-to-text-app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -298,11 +298,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.github.Rakk301.speech-to-text-app";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

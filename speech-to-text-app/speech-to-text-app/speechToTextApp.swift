@@ -40,7 +40,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupComponents()
         setupMenuBar()
-        requestPermissions()
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -73,12 +72,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         print("Menu bar setup complete")
-    }
-    
-    private func requestPermissions() {
-        // On macOS, microphone permissions are handled automatically by the system
-        // The user will be prompted when the app first tries to record
-        print("Microphone permissions will be requested when recording starts")
     }
     
     // MARK: - Event Handlers
@@ -186,23 +179,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         alert.runModal()
     }
     
-    // MARK: - Test Methods
-    private func showTestAlert() {
-        let alert = NSAlert()
-        alert.messageText = "Menu Bar Working!"
-        alert.informativeText = "The menu bar integration is working correctly. Ready for the next step!"
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Great!")
-        alert.runModal()
+    // MARK: - Cleanup
+    private func cleanup() {
+        if isRecording {
+            audioRecorder?.stopRecording()
+        }
+        print("App terminating")
     }
-    
-    //     // MARK: - Cleanup
-    //     private func cleanup() {
-    //         if isRecording {
-    //             audioRecorder?.stopRecording()
-    //         }
-    //         logger?.log("App terminating")
-    //     }
 }
 
 #Preview {

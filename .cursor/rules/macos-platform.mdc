@@ -1,0 +1,7 @@
+---
+description: macOS Platform rule
+alwaysApply: false
+---
+
+# macOS Platform Rule
+This project is a **macOS-only app**. When making suggestions about frameworks, libraries, or APIs, always recommend those that are specific to or best supported on macOS (e.g., AppKit, AVFoundation, Carbon, NSPasteboard, etc.). Avoid cross-platform or non-macOS solutions unless explicitly requested.
