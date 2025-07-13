@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // private var hotkeyManager: HotkeyManager?
     // private var pasteManager: PasteManager?
     // private var pythonBridge: PythonBridge?
-    // private var logger: Logger?
+    private var logger: Logger?
     
     private var isRecording = false
     
@@ -43,12 +43,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ notification: Notification) {
-        // cleanup()
+        cleanup()
     }
     
     // MARK: - Setup
     private func setupComponents() {
-        // logger = Logger()
+        logger = Logger()
         audioRecorder = AudioRecorder()
         // hotkeyManager = HotkeyManager()
         // pasteManager = PasteManager()
@@ -59,7 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //     self?.handleHotkeyPress()
         // }
         
-        print("App components initialized")
+        logger?.log("App components initialized")
     }
     
     private func setupMenuBar() {
@@ -71,12 +71,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
         }
         
-        print("Menu bar setup complete")
+        logger?.log("Menu bar setup complete")
     }
     
     // MARK: - Event Handlers
     @objc private func menuBarClicked() {
-        print("Menu bar clicked!")
+        logger?.log("Menu bar clicked!")
         handleHotkeyPress()
     }
     
@@ -95,9 +95,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             try audioRecorder?.startRecording()
             isRecording = true
             updateMenuBarIcon(recording: true)
-            print("Recording started")
+            logger?.log("Recording started")
         } catch {
-            print("Failed to start recording: \(error.localizedDescription)")
+            logger?.logError(error, context: "Failed to start recording")
             showErrorAlert("Failed to start recording")
         }
     }
@@ -106,13 +106,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard isRecording else { return }
         
         guard let audioFileURL = audioRecorder?.stopRecording() else {
-            print("Failed to get audio file")
+            logger?.log("Failed to get audio file", level: .error)
             return
         }
         
         isRecording = false
         updateMenuBarIcon(recording: false)
-        print("Recording stopped - Audio saved to: \(audioFileURL.path)")
+        logger?.log("Recording stopped - Audio saved to: \(audioFileURL.path)")
         
         // Process audio with Python
         // processAudioFile(audioFileURL)
@@ -184,7 +184,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if isRecording {
             audioRecorder?.stopRecording()
         }
-        print("App terminating")
+        logger?.log("App terminating")
     }
 }
 
