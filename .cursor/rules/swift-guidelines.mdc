@@ -1,0 +1,95 @@
+---
+description: swift development project
+globs: *.swift
+alwaysApply: false
+---
+# Swift Development Guidelines
+
+## 🎯 Swift Component Responsibilities
+- **System Integration**: Hotkeys, audio capture, paste operations
+- **Audio Recording**: AVAudioEngine wrapper for microphone input
+- **Python Bridge**: Subprocess communication for ML processing
+- **UI Management**: Menu bar interface and status indicators
+
+## 📋 Core Swift Files
+
+### SpeechToTextApp.swift (Main Entry Point)
+- App lifecycle management and coordination
+- Menu bar setup and status management
+- Coordinate between all components
+
+### AudioRecorder.swift
+- AVAudioEngine wrapper for microphone recording
+- Handle audio session configuration (16kHz, mono for Whisper)
+- Save recordings to temporary files
+- Manage recording start/stop lifecycle
+
+### HotkeyManager.swift
+- Global hotkey registration (⌘⇧S) using Carbon framework
+- Handle hotkey conflicts and system permissions
+- Trigger recording events
+
+### PasteManager.swift
+- Clipboard operations using NSPasteboard
+- Cursor positioning (with accessibility fallback)
+- Handle paste errors gracefully
+
+### PythonBridge.swift
+- Execute Python transcribe.py as subprocess
+- Pass audio file paths and receive transcribed text
+- Handle subprocess lifecycle and errors
+
+### Logger.swift
+- Timestamped transcription logging
+- Error logging and debugging support
+- Log file management
+
+## 🔧 Swift Best Practices
+- Use `Result<T, Error>` for operations that can fail
+- Create custom error types for domain-specific errors
+- Use weak references for delegates and closures
+- Keep UI updates on main queue with `@MainActor`
+- Handle permissions proactively (microphone, accessibility)
+- Use temporary directories for audio files
+- Implement proper cleanup in `deinit`
+
+## 📚 Key Dependencies
+- `AVFoundation` - Audio recording
+- `Carbon` - Global hotkeys
+- `AppKit` - macOS UI components
+- `Foundation` - Basic functionality
+
+## 🎯 Coding Standards
+
+### Naming Conventions
+- **Classes**: PascalCase (e.g., `AudioRecorder`, `HotkeyManager`)
+- **Functions**: camelCase (e.g., `startRecording()`, `handleHotkeyPress()`)
+- **Files**: Match class names exactly
+
+### Code Structure
+```swift
+// MARK: - Imports
+import AVFoundation
+import Carbon
+
+// MARK: - Protocol Definition
+protocol AudioRecordable {
+    func startRecording() throws
+    func stopRecording() -> URL?
+}
+
+// MARK: - Class Definition
+class AudioRecorder: AudioRecordable {
+    // MARK: - Properties
+    private let audioEngine = AVAudioEngine()
+    
+    // MARK: - Public Methods
+    func startRecording() throws {
+        // Implementation
+    }
+    
+    func stopRecording() -> URL? {
+        // Implementation
+    }
+}
+```

@@ -43,7 +43,4 @@ alwaysApply: false
 - `ollama` for LLM
 - `sounddevice` for audio processing
 - `numpy` for numerical operations
-description:
-globs:
-alwaysApply: false
----
+
