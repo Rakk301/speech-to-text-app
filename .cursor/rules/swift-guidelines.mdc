@@ -93,3 +93,42 @@ class AudioRecorder: AudioRecordable {
     }
 }
 ```
+
+## 🎯 Swift CLI Development Workflow
+
+### Development Philosophy
+- **CLI-First**: Use `swift build` and `swift run` for all development
+- **Logger-Based Debugging**: Rely on Logger.swift for all debugging needs
+- **Text Editor Freedom**: Use any text editor (VS Code, Vim, etc.)
+- **Xcode Only When Needed**: Only use Xcode for final packaging and code signing
+
+### 🛠️ CLI Development Commands
+```bash
+# Build the project
+swift build
+
+# Run the app
+swift run
+
+# Run with logging to file
+swift run 2>&1 | tee app.log
+
+# Clean and rebuild
+swift package clean
+swift build
+
+# Check for issues
+swift package resolve
+```
+
+### Development Workflow
+1. **Edit code** in your preferred text editor
+2. **Build**: `swift build`
+3. **Run**: `swift run`
+4. **Debug**: Check Logger.swift output
+5. **Iterate**: Repeat
+
+### ⚠️ When to Use Xcode
+- Final app packaging and code signing
+- Complex debugging (if Logger.swift isn't sufficient)
+- App Store distribution
