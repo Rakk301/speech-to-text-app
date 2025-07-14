@@ -30,13 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var audioRecorder: AudioRecorder?
     private var hotkeyManager: HotkeyManager?
-<<<<<<< Updated upstream:speech-to-text-app/speech-to-text-app/speechToTextApp.swift
     private var pasteManager: PasteManager?
     // private var pythonBridge: PythonBridge?
-=======
-    // private var pasteManager: PasteManager?
-    private var pythonBridge: PythonBridge?
->>>>>>> Stashed changes:Swift/speechToTextApp.swift
     private var logger: Logger?
     
     private var isRecording = false
@@ -56,13 +51,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger = Logger()
         audioRecorder = AudioRecorder()
         hotkeyManager = HotkeyManager()
-<<<<<<< Updated upstream:speech-to-text-app/speech-to-text-app/speechToTextApp.swift
         pasteManager = PasteManager()
         // pythonBridge = PythonBridge()
-=======
-        // pasteManager = PasteManager()
-        pythonBridge = PythonBridge()
->>>>>>> Stashed changes:Swift/speechToTextApp.swift
         
         // Set up hotkey callback
         hotkeyManager?.onHotkeyPressed = { [weak self] in
@@ -87,7 +77,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Event Handlers
     @objc private func menuBarClicked() {
         logger?.log("Menu bar clicked!")
-<<<<<<< Updated upstream:speech-to-text-app/speech-to-text-app/speechToTextApp.swift
         showTestOptions()
     }
     
@@ -109,52 +98,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         default:
             break
         }
-=======
-        // Temporarily test PythonBridge instead of recording
-        testPythonBridge()
-        // handleHotkeyPress()
-    }
-    
-    // MARK: - Test Methods
-    private func testPythonBridge() {
-        logger?.log("Testing PythonBridge...")
-        
-        // Create a simple test file
-        let testFileURL = FileManager.default.temporaryDirectory.appendingPathComponent("test_bridge.txt")
-        let testContent = "This is a test file for PythonBridge communication."
-        
-        do {
-            try testContent.write(to: testFileURL, atomically: true, encoding: .utf8)
-            logger?.log("Created test file: \(testFileURL.path)")
-            
-            // Test the PythonBridge with our test script
-            pythonBridge?.transcribeAudio(testFileURL) { [weak self] result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let output):
-                        self?.logger?.log("✅ PythonBridge test successful")
-                        self?.logger?.log("Output: \(output)")
-                        self?.showTestAlert("PythonBridge Test", "Bridge communication successful!\n\nOutput: \(output)")
-                    case .failure(let error):
-                        self?.logger?.logError(error, context: "PythonBridge test failed")
-                        self?.showErrorAlert("PythonBridge test failed: \(error.localizedDescription)")
-                    }
-                }
-            }
-        } catch {
-            logger?.logError(error, context: "Failed to create test file")
-            showErrorAlert("Failed to create test file")
-        }
-    }
-    
-    private func showTestAlert(_ title: String, _ message: String) {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "OK")
-        alert.runModal()
->>>>>>> Stashed changes:Swift/speechToTextApp.swift
     }
     
     private func handleHotkeyPress() {
