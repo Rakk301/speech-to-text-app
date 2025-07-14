@@ -1,0 +1,6 @@
+---
+alwaysApply: false
+---
+# Xcode Info.plist Rule
+
+Never generate Info.plist files manually. Let Xcode generate and manage the Info.plist automatically through the project settings. The Info.plist should be configured through Xcode's target settings, not as a separate file.

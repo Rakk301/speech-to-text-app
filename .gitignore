@@ -10,8 +10,8 @@ __pycache__/
 Logs/
 
 # Xcode user data
-speech-to-text-app/speech-to-text-app.xcodeproj/xcuserdata/
-speech-to-text-app/speech-to-text-app.xcodeproj/project.xcworkspace/xcuserdata/
+app.xcodeproj/xcuserdata/
+app.xcodeproj/project.xcworkspace/xcuserdata/
 
 # macOS
 .DS_Store

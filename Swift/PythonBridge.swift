@@ -5,6 +5,7 @@ enum PythonBridgeError: Error, LocalizedError {
     case invalidOutput
     case scriptNotFound
     case executionTimeout
+    case pythonNotFound
     
     var errorDescription: String? {
         switch self {
@@ -13,9 +14,11 @@ enum PythonBridgeError: Error, LocalizedError {
         case .invalidOutput:
             return "Invalid output from Python script"
         case .scriptNotFound:
-            return "Python transcribe script not found"
+            return "Python script not found in app bundle"
         case .executionTimeout:
             return "Python script execution timed out"
+        case .pythonNotFound:
+            return "Python interpreter not found in app bundle"
         }
     }
 }
@@ -24,17 +27,21 @@ class PythonBridge {
     
     // MARK: - Properties
     private let pythonScriptPath: String
-    private let timeoutInterval: TimeInterval = 30.0
+    private let pythonInterpreterPath: String
+    private let timeoutInterval: TimeInterval = 60.0 // Increased timeout for ML processing
     
     // MARK: - Initialization
     init() {
-        // Get the path to the Python script
-        if let bundlePath = Bundle.main.resourcePath {
-            pythonScriptPath = bundlePath + "/Python/transcribe.py"
-        } else {
-            // Fallback to current directory
-            pythonScriptPath = "./Python/transcribe.py"
+        // Get the app bundle path
+        guard let bundlePath = Bundle.main.bundlePath else {
+            fatalError("Could not get app bundle path")
         }
+        
+        // Always use bundled Python environment
+        let appBundle = bundlePath
+        pythonScriptPath = appBundle + "/Contents/Resources/Python/test_bridge.py"
+        // Use the Python interpreter from the virtual environment
+        pythonInterpreterPath = appBundle + "/Contents/Resources/Python/.venv/bin/python3"
     }
     
     // MARK: - Public Methods
@@ -45,10 +52,32 @@ class PythonBridge {
             return
         }
         
+        // Check if Python interpreter exists
+        guard FileManager.default.fileExists(atPath: pythonInterpreterPath) else {
+            completion(.failure(PythonBridgeError.pythonNotFound))
+            return
+        }
+        
         // Create process
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-        process.arguments = [pythonScriptPath, audioFileURL.path]
+        process.executableURL = URL(fileURLWithPath: pythonInterpreterPath)
+        
+        // Get the app bundle path for resources
+        guard let bundlePath = Bundle.main.bundlePath else {
+            completion(.failure(PythonBridgeError.scriptNotFound))
+            return
+        }
+        let appBundle = bundlePath
+        
+        // Set up Python command
+        process.arguments = [
+            pythonScriptPath, 
+            audioFileURL.path,
+            "--config", appBundle + "/Contents/Resources/Config/settings.yaml"
+        ]
+        
+        // Set working directory to app bundle resources
+        process.currentDirectoryURL = URL(fileURLWithPath: appBundle + "/Contents/Resources")
         
         // Set up pipes for communication
         let outputPipe = Pipe()
