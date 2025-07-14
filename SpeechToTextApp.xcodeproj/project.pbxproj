@@ -7,15 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000968732E24DD7C000173E2 /* HotkeyManager.swift */; };
 		00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */; };
 		00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */; };
+		00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516F2E24D05200BE5FC7 /* Logger.swift */; };
+		00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51712E24D1F100BE5FC7 /* PasteManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		000968732E24DD7C000173E2 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyManager.swift; path = Swift/HotkeyManager.swift; sourceTree = "<group>"; };
 		00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeechToTextApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioRecorder.swift; path = Swift/AudioRecorder.swift; sourceTree = "<group>"; };
 		00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpeechToTextApp.swift; path = Swift/SpeechToTextApp.swift; sourceTree = "<group>"; };
 		00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeechToTextApp.entitlements; sourceTree = "<group>"; };
+		00EA516F2E24D05200BE5FC7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Swift/Logger.swift; sourceTree = "<group>"; };
+		00EA51712E24D1F100BE5FC7 /* PasteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PasteManager.swift; path = Swift/PasteManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,9 +38,12 @@
 		00EA51522E24C05900BE5FC7 = {
 			isa = PBXGroup;
 			children = (
+				00EA51712E24D1F100BE5FC7 /* PasteManager.swift */,
 				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
 				00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */,
 				00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */,
+				000968732E24DD7C000173E2 /* HotkeyManager.swift */,
+				00EA516F2E24D05200BE5FC7 /* Logger.swift */,
 				00EA515C2E24C05900BE5FC7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -120,6 +129,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */,
+				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,
+				000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */,
+				00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */,
 				00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -252,6 +264,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = SpeechToTextApp.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -259,11 +272,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.Rakk301.SpeechToTextApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -280,6 +295,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = SpeechToTextApp.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -287,11 +303,13 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.Rakk301.SpeechToTextApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

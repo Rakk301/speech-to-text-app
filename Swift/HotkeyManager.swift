@@ -23,13 +23,14 @@ class HotkeyManager {
     private let hotkeyID = EventHotKeyID(signature: OSType(0x53545441), id: 1) // "STTA" as 32-bit value
     // Local hotkey monitor (works without permissions)
     private var localMonitor: Any?
+    private var logger: Logger?
     
     // Callback for when hotkey is pressed
     var onHotkeyPressed: (() -> Void)?
     
     // MARK: - Initialization
     init() {
-        print("[HotkeyManager] Initializing HotkeyManager")
+        logger = Logger()
         setupLocalHotkey() // Always works
         setupHotkey()      // Global hotkey (if permissions)
     }
@@ -40,10 +41,10 @@ class HotkeyManager {
     
     // MARK: - Public Methods
     func registerHotkey() throws {
-        print("[HotkeyManager] Attempting to register hotkey (⌘⇧⌥T)")
+        logger?.log("Attempting to register global hotkey (⌘⇧⌥T)", level: .debug)
         // Check if accessibility permissions are granted
         guard checkAccessibilityPermissions() else {
-            print("[HotkeyManager] Accessibility permission denied")
+            logger?.log("Accessibility permission denied for global hotkey", level: .warning)
             throw HotkeyManagerError.permissionDenied
         }
         
@@ -54,10 +55,10 @@ class HotkeyManager {
         let status = RegisterEventHotKey(keyCode, modifiers, hotkeyID, GetApplicationEventTarget(), 0, &hotkeyRef)
         
         guard status == noErr else {
-            print("[HotkeyManager] Hotkey registration failed with status: \(status)")
+            logger?.log("Global hotkey registration failed with status: \(status)", level: .error)
             throw HotkeyManagerError.registrationFailed
         }
-        print("[HotkeyManager] Hotkey registered successfully")
+        logger?.log("Global hotkey registered successfully", level: .info)
         // Install event handler
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: OSType(kEventHotKeyPressed))
         
@@ -69,7 +70,7 @@ class HotkeyManager {
         }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), &eventHandler)
         
         guard status2 == noErr else {
-            print("[HotkeyManager] Event handler installation failed with status: \(status2)")
+            logger?.log("Global hotkey event handler installation failed with status: \(status2)", level: .error)
             throw HotkeyManagerError.registrationFailed
         }
     }
@@ -83,18 +84,18 @@ class HotkeyManager {
         do {
             try registerHotkey()
         } catch {
-            print("Failed to register hotkey: \(error.localizedDescription)")
-            print("To enable global hotkeys:")
-            print("1. Open System Settings")
-            print("2. Go to Privacy & Security > Accessibility")
-            print("3. Find 'Speech To Text App' in the list")
-            print("4. Toggle the switch to enable access")
-            print("5. Restart the app")
+            logger?.log("Failed to register global hotkey: \(error.localizedDescription)", level: .warning)
+            logger?.log("To enable global hotkeys:", level: .info)
+            logger?.log("1. Open System Settings", level: .info)
+            logger?.log("2. Go to Privacy & Security > Accessibility", level: .info)
+            logger?.log("3. Find 'Speech To Text App' in the list", level: .info)
+            logger?.log("4. Toggle the switch to enable access", level: .info)
+            logger?.log("5. Restart the app", level: .info)
         }
     }
     
     private func handleHotkeyEvent() {
-        print("[HotkeyManager] Hotkey pressed (⌘⇧⌥T)")
+        logger?.log("Global hotkey pressed (⌘⇧⌥T)", level: .info)
         DispatchQueue.main.async { [weak self] in
             self?.onHotkeyPressed?()
         }
@@ -107,33 +108,37 @@ class HotkeyManager {
     
     // Local hotkey (works immediately, no permissions needed)
     private func setupLocalHotkey() {
-        print("[HotkeyManager] Setting up local hotkey (⌘⇧⌥T)")
+        logger?.log("Setting up local hotkey (⌘⇧⌥T)", level: .debug)
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == [.command, .shift, .option],
                event.keyCode == kVK_ANSI_T {
-                print("[HotkeyManager] Local hotkey pressed (⌘⇧⌥T)")
+                self?.logger?.log("Local hotkey pressed (⌘⇧⌥T)", level: .info)
                 self?.onHotkeyPressed?()
                 return nil // Swallow the keystroke
             }
             return event
         }
-        print("[HotkeyManager] Local hotkey registered successfully")
+        logger?.log("Local hotkey registered successfully", level: .info)
     }
     
     private func cleanup() {
+        logger?.log("Cleaning up HotkeyManager", level: .debug)
         // Clean up local monitor
         if let localMonitor = localMonitor {
             NSEvent.removeMonitor(localMonitor)
             self.localMonitor = nil
+            logger?.log("Local hotkey monitor removed", level: .debug)
         }
         // Clean up global hotkey
         if let hotkeyRef = hotkeyRef {
             UnregisterEventHotKey(hotkeyRef)
             self.hotkeyRef = nil
+            logger?.log("Global hotkey unregistered", level: .debug)
         }
         if let eventHandler = eventHandler {
             RemoveEventHandler(eventHandler)
             self.eventHandler = nil
+            logger?.log("Global hotkey event handler removed", level: .debug)
         }
     }
 } 

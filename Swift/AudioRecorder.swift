@@ -25,10 +25,12 @@ class AudioRecorder {
     private let inputNode: AVAudioInputNode
     private var audioFile: AVAudioFile?
     private var recordingURL: URL?
+    private var logger: Logger?
     
     // MARK: - Initialization
     init() {
         inputNode = audioEngine.inputNode
+        logger = Logger()
     }
     
     deinit {
@@ -39,24 +41,26 @@ class AudioRecorder {
     
     /// Start recording - macOS will automatically request microphone permission if needed
     func startRecording() throws {
-        print("🎤 Starting recording...")
+        logger?.log("Starting audio recording", level: .info)
         
         // Create temporary audio file
         recordingURL = createTemporaryAudioFile()
         guard let url = recordingURL else {
+            logger?.log("Failed to create temporary audio file", level: .error)
             throw AudioRecorderError.fileCreationFailed
         }
         
-        print("💾 Recording to: \(url.path)")
+        logger?.log("Recording to: \(url.path)", level: .debug)
         
         // Get the native format from the input node
         let format = inputNode.inputFormat(forBus: 0)
-        print("📊 Using format: \(format)")
+        logger?.log("Using audio format: \(format)", level: .debug)
         
         // Create audio file
         do {
             audioFile = try AVAudioFile(forWriting: url, settings: format.settings)
         } catch {
+            logger?.log("Failed to create audio file: \(error.localizedDescription)", level: .error)
             throw AudioRecorderError.fileCreationFailed
         }
         
@@ -68,10 +72,10 @@ class AudioRecorder {
         // Start audio engine - this will trigger permission request if needed
         do {
             try audioEngine.start()
-            print("✅ Recording started successfully")
+            logger?.log("Audio recording started successfully", level: .info)
         } catch {
             inputNode.removeTap(onBus: 0)
-            print("❌ Audio engine start failed: \(error)")
+            logger?.log("Audio engine start failed: \(error.localizedDescription)", level: .error)
             throw AudioRecorderError.recordingFailed
         }
     }
@@ -79,7 +83,7 @@ class AudioRecorder {
     func stopRecording() -> URL? {
         guard audioEngine.isRunning else { return nil }
         
-        print("🛑 Stopping recording...")
+        logger?.log("Stopping audio recording", level: .info)
         
         // Stop audio engine
         audioEngine.stop()
@@ -93,14 +97,13 @@ class AudioRecorder {
         recordingURL = nil
         
         if let url = url {
-            print("✅ Recording completed: \(url.path)")
             
             // Check file size
             let fileManager = FileManager.default
             if fileManager.fileExists(atPath: url.path) {
                 let attributes = try? fileManager.attributesOfItem(atPath: url.path)
                 let fileSize = attributes?[.size] as? Int64 ?? 0
-                print("📁 File size: \(fileSize) bytes")
+                logger?.log("Audio file size: \(fileSize) bytes", level: .debug)
             }
         }
         
@@ -122,7 +125,7 @@ class AudioRecorder {
         do {
             try audioFile.write(from: buffer)
         } catch {
-            print("❌ Failed to write audio buffer: \(error)")
+            logger?.log("Failed to write audio buffer: \(error.localizedDescription)", level: .error)
         }
     }
     
