@@ -14,11 +14,11 @@ enum PythonBridgeError: Error, LocalizedError {
         case .invalidOutput:
             return "Invalid output from Python script"
         case .scriptNotFound:
-            return "Python script not found in app bundle"
+            return "Python script not found"
         case .executionTimeout:
             return "Python script execution timed out"
         case .pythonNotFound:
-            return "uv not found in app bundle"
+            return "uv not found on system"
         }
     }
 }
@@ -26,59 +26,59 @@ enum PythonBridgeError: Error, LocalizedError {
 class PythonBridge {
     
     // MARK: - Properties
-    private let pythonScriptPath: String
+    private let projectPath: String
     private let uvPath: String
-    private let timeoutInterval: TimeInterval = 60.0 // Increased timeout for ML processing
+    private let timeoutInterval: TimeInterval = 60.0
     
     // MARK: - Initialization
     init() {
-        // Get the app bundle path
-        guard let bundlePath = Bundle.main.bundlePath else {
-            fatalError("Could not get app bundle path")
-        }
-        
-        // Always use bundled Python environment
-        let appBundle = bundlePath
-        pythonScriptPath = appBundle + "/Contents/Resources/Python/transcribe.py"
-        // Use system uv to run Python scripts with dependencies
+        // Hardcode the project path for now - this is exactly like your terminal
+        projectPath = "/Users/rakhshaanhussain/Personal Projects/Speech To Text App"
         uvPath = "/opt/homebrew/bin/uv"
+        
+        print("[PythonBridge] Project path: \(projectPath)")
+        print("[PythonBridge] uv path: \(uvPath)")
     }
     
     // MARK: - Public Methods
     func transcribeAudio(_ audioFileURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        // Check if Python script exists
-        guard FileManager.default.fileExists(atPath: pythonScriptPath) else {
-            completion(.failure(PythonBridgeError.scriptNotFound))
-            return
-        }
+        print("[PythonBridge] Starting transcription for: \(audioFileURL.path)")
         
         // Check if uv exists
         guard FileManager.default.fileExists(atPath: uvPath) else {
+            print("[PythonBridge] uv not found at: \(uvPath)")
             completion(.failure(PythonBridgeError.pythonNotFound))
             return
         }
         
-        // Create process
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: uvPath)
-        
-        // Get the app bundle path for resources
-        guard let bundlePath = Bundle.main.bundlePath else {
+        // Check if Python script exists
+        let pythonScriptPath = projectPath + "/Python/transcribe.py"
+        guard FileManager.default.fileExists(atPath: pythonScriptPath) else {
+            print("[PythonBridge] Python script not found at: \(pythonScriptPath)")
             completion(.failure(PythonBridgeError.scriptNotFound))
             return
         }
-        let appBundle = bundlePath
         
-        // Set up uv command to run the Python script
+        print("[PythonBridge] Both uv and Python script found, starting transcription...")
+        
+        // Create process - exactly like your terminal command
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: uvPath)
+        
+        // Set up command arguments - exactly like your terminal
         process.arguments = [
-            "run", 
-            "transcribe.py", 
+            "run",
+            "transcribe.py",
             audioFileURL.path,
             "--config", "../Config/settings.yaml"
         ]
         
-        // Set working directory to Python directory for uv to find pyproject.toml
-        process.currentDirectoryURL = URL(fileURLWithPath: appBundle + "/Contents/Resources/Python")
+        // Set working directory to Python directory - exactly like your terminal
+        let pythonDirectory = URL(fileURLWithPath: projectPath + "/Python")
+        process.currentDirectoryURL = pythonDirectory
+        
+        print("[PythonBridge] Working directory: \(pythonDirectory.path)")
+        print("[PythonBridge] Command: \(uvPath) \(process.arguments?.joined(separator: " ") ?? "")")
         
         // Set up pipes for communication
         let outputPipe = Pipe()
@@ -94,6 +94,11 @@ class PythonBridge {
             let data = handle.availableData
             if data.count > 0 {
                 outputData.append(data)
+                
+                // Print stdout in real-time
+                if let outputString = String(data: data, encoding: .utf8) {
+                    print("[Python stdout] \(outputString)", terminator: "")
+                }
             }
         }
         
@@ -101,6 +106,11 @@ class PythonBridge {
             let data = handle.availableData
             if data.count > 0 {
                 errorData.append(data)
+                
+                // Print stderr in real-time
+                if let errorString = String(data: data, encoding: .utf8) {
+                    print("[Python stderr] \(errorString)", terminator: "")
+                }
             }
         }
         
@@ -116,21 +126,40 @@ class PythonBridge {
                 if let outputString = String(data: outputData as Data, encoding: .utf8) {
                     let trimmedOutput = outputString.trimmingCharacters(in: .whitespacesAndNewlines)
                     if !trimmedOutput.isEmpty {
+                        print("[PythonBridge] Transcription successful: \(trimmedOutput)")
                         completion(.success(trimmedOutput))
                     } else {
+                        print("[PythonBridge] Empty transcription output")
                         completion(.failure(PythonBridgeError.invalidOutput))
                     }
                 } else {
+                    print("[PythonBridge] Failed to decode transcription output")
                     completion(.failure(PythonBridgeError.invalidOutput))
                 }
             } else {
-                // Error - log error output
+                // Error - log error output with better formatting
+                print("[PythonBridge] Process failed with exit code: \(process.terminationStatus)")
+                
                 if let errorString = String(data: errorData as Data, encoding: .utf8) {
-                    print("Python script error: \(errorString)")
+                    print("[PythonBridge] Final stderr output:")
+                    print(errorString)
                 }
+                
+                if let outputString = String(data: outputData as Data, encoding: .utf8) {
+                    print("[PythonBridge] Final stdout output:")
+                    print(outputString)
+                }
+                
+                // Create a more descriptive error
+                let errorMessage = "Python script failed with exit code \(process.terminationStatus). Check console for details."
                 completion(.failure(PythonBridgeError.processFailed))
             }
         }
+        
+        // Set up environment with proper PATH
+        var environment = ProcessInfo.processInfo.environment
+        environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        process.environment = environment
         
         // Start the process
         do {
@@ -144,16 +173,8 @@ class PythonBridge {
                 }
             }
         } catch {
+            print("[PythonBridge] Failed to start process: \(error)")
             completion(.failure(error))
-        }
-    }
-    
-    // MARK: - Private Methods
-    private func cleanupTemporaryFile(_ url: URL) {
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            print("Failed to cleanup temporary file: \(error)")
         }
     }
 } 

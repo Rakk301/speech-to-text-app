@@ -118,7 +118,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         updateMenuBarIcon(recording: false)
         logger?.log("Audio file successfully saved to: \(audioFileURL.path)", level: .debug)
         
-        // TODO: add Python processing later
+        // Process the audio file with Python
+        processAudioFile(audioFileURL)
     }
     
     private func processAudioFile(_ audioFileURL: URL) {
@@ -133,12 +134,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 case .failure(let error):
                     self?.logger?.logError(error, context: "Transcription failed")
                     self?.logger?.log("Transcription failed with error: \(error.localizedDescription)", level: .error)
-                    self?.showErrorAlert("Transcription failed: \(error.localizedDescription)")
+                    // self?.showErrorAlert("Transcription failed: \(error.localizedDescription)")
                 }
             }
         }
     }
+    
+
+    private func handleTranscribedText(_ text: String) {
         
+        logger?.log("Testing clipboard-only functionality with text: \(text)")
+        
+        // Save original clipboard content
+        let originalContent = NSPasteboard.general.string(forType: .string)
+        
+        // Copy test text to clipboard
+        NSPasteboard.general.clearContents()
+        if NSPasteboard.general.setString(text, forType: .string) {
+            logger?.log("✅ Text copied to clipboard successfully!")
+            // showSuccessAlert("Text copied to clipboard! Press Cmd+V to paste it manually.")
+            
+            // Restore original clipboard after a delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 30.0) {
+                if let original = originalContent {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(original, forType: .string)
+                    self.logger?.log("✅ Original clipboard content restored")
+                }
+            }
+        } else {
+            logger?.log("❌ Failed to copy text to clipboard", level: .error)
+            // showErrorAlert("Failed to copy text to clipboard")
+        }
+    }
+
+    // // MARK: - Text Processing
+    // private func handleTranscribedText(_ text: String) {
+    //     logger?.log("Handling transcribed text: \(text)", level: .info)
+        
+    //     // Paste the transcribed text at the cursor
+    //     pasteManager?.pasteText(text) { [weak self] success in
+    //         DispatchQueue.main.async {
+    //             if success {
+    //                 self?.logger?.log("Text pasted successfully", level: .info)
+    //                 // self?.showSuccessNotification("Text transcribed and pasted!")
+    //             } else {
+    //                 self?.logger?.log("Failed to paste text", level: .error)
+    //                 // self?.showErrorAlert("Failed to paste text")
+    //             }
+    //         }
+    //     }
+    // }
+    
     // MARK: - UI Updates
     private func updateMenuBarIcon(recording: Bool) {
         if let button = statusItem?.button {
@@ -154,6 +201,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger?.log("App terminating")
     }
 }
+
 #Preview {
     ContentView()
 }
