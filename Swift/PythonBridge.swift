@@ -18,7 +18,7 @@ enum PythonBridgeError: Error, LocalizedError {
         case .executionTimeout:
             return "Python script execution timed out"
         case .pythonNotFound:
-            return "Python interpreter not found in app bundle"
+            return "uv not found in app bundle"
         }
     }
 }
@@ -27,7 +27,7 @@ class PythonBridge {
     
     // MARK: - Properties
     private let pythonScriptPath: String
-    private let pythonInterpreterPath: String
+    private let uvPath: String
     private let timeoutInterval: TimeInterval = 60.0 // Increased timeout for ML processing
     
     // MARK: - Initialization
@@ -39,9 +39,9 @@ class PythonBridge {
         
         // Always use bundled Python environment
         let appBundle = bundlePath
-        pythonScriptPath = appBundle + "/Contents/Resources/Python/test_bridge.py"
-        // Use the Python interpreter from the virtual environment
-        pythonInterpreterPath = appBundle + "/Contents/Resources/Python/.venv/bin/python3"
+        pythonScriptPath = appBundle + "/Contents/Resources/Python/transcribe.py"
+        // Use system uv to run Python scripts with dependencies
+        uvPath = "/opt/homebrew/bin/uv"
     }
     
     // MARK: - Public Methods
@@ -52,15 +52,15 @@ class PythonBridge {
             return
         }
         
-        // Check if Python interpreter exists
-        guard FileManager.default.fileExists(atPath: pythonInterpreterPath) else {
+        // Check if uv exists
+        guard FileManager.default.fileExists(atPath: uvPath) else {
             completion(.failure(PythonBridgeError.pythonNotFound))
             return
         }
         
         // Create process
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: pythonInterpreterPath)
+        process.executableURL = URL(fileURLWithPath: uvPath)
         
         // Get the app bundle path for resources
         guard let bundlePath = Bundle.main.bundlePath else {
@@ -69,15 +69,16 @@ class PythonBridge {
         }
         let appBundle = bundlePath
         
-        // Set up Python command
+        // Set up uv command to run the Python script
         process.arguments = [
-            pythonScriptPath, 
+            "run", 
+            "transcribe.py", 
             audioFileURL.path,
-            "--config", appBundle + "/Contents/Resources/Config/settings.yaml"
+            "--config", "../Config/settings.yaml"
         ]
         
-        // Set working directory to app bundle resources
-        process.currentDirectoryURL = URL(fileURLWithPath: appBundle + "/Contents/Resources")
+        // Set working directory to Python directory for uv to find pyproject.toml
+        process.currentDirectoryURL = URL(fileURLWithPath: appBundle + "/Contents/Resources/Python")
         
         // Set up pipes for communication
         let outputPipe = Pipe()

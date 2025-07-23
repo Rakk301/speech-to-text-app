@@ -12,6 +12,7 @@
 		00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */; };
 		00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516F2E24D05200BE5FC7 /* Logger.swift */; };
 		00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51712E24D1F100BE5FC7 /* PasteManager.swift */; };
+		00F4539D2E305DF5001DFC30 /* PythonBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F4539C2E305DF5001DFC30 /* PythonBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,7 +23,21 @@
 		00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeechToTextApp.entitlements; sourceTree = "<group>"; };
 		00EA516F2E24D05200BE5FC7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Swift/Logger.swift; sourceTree = "<group>"; };
 		00EA51712E24D1F100BE5FC7 /* PasteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PasteManager.swift; path = Swift/PasteManager.swift; sourceTree = "<group>"; };
+		00F4539C2E305DF5001DFC30 /* PythonBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PythonBridge.swift; path = Swift/PythonBridge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		00F4539F2E305E30001DFC30 /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Config;
+			sourceTree = "<group>";
+		};
+		00F4597C2E305E30001DFC30 /* Python */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Python;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		00EA51582E24C05900BE5FC7 /* Frameworks */ = {
@@ -39,6 +54,9 @@
 			isa = PBXGroup;
 			children = (
 				00EA51712E24D1F100BE5FC7 /* PasteManager.swift */,
+				00F4539C2E305DF5001DFC30 /* PythonBridge.swift */,
+				00F4539F2E305E30001DFC30 /* Config */,
+				00F4597C2E305E30001DFC30 /* Python */,
 				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
 				00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */,
 				00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */,
@@ -70,6 +88,10 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				00F4539F2E305E30001DFC30 /* Config */,
+				00F4597C2E305E30001DFC30 /* Python */,
 			);
 			name = SpeechToTextApp;
 			packageProductDependencies = (
@@ -132,6 +154,7 @@
 				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,
 				000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */,
 				00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */,
+				00F4539D2E305DF5001DFC30 /* PythonBridge.swift in Sources */,
 				00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -277,6 +300,15 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/random/lib",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/_soundfile_data",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/_core/lib",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/llvmlite/binding",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/tiktoken",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/torch/lib",
+				);
 				MARKETING_VERSION = 1.0;
 				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.Rakk301.SpeechToTextApp;
@@ -307,6 +339,15 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/random/lib",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/_soundfile_data",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/_core/lib",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/llvmlite/binding",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/tiktoken",
+					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/torch/lib",
 				);
 				MARKETING_VERSION = 1.0;
 				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";

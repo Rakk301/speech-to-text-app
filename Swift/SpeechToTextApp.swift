@@ -31,7 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var audioRecorder: AudioRecorder?
     private var hotkeyManager: HotkeyManager?
     private var pasteManager: PasteManager?
-    // private var pythonBridge: PythonBridge?
+    private var pythonBridge: PythonBridge?
     private var logger: Logger?
     
     private var isRecording = false
@@ -53,8 +53,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         audioRecorder = AudioRecorder()
         hotkeyManager = HotkeyManager()
         pasteManager = PasteManager()
-        // pythonBridge = PythonBridge()
-        // logger?.log("PythonBridge component initialized", level: .debug)
+        pythonBridge = PythonBridge()
+        logger?.log("PythonBridge component initialized", level: .debug)
         
         // Set up hotkey callback
         hotkeyManager?.onHotkeyPressed = { [weak self] in
@@ -124,19 +124,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func processAudioFile(_ audioFileURL: URL) {
         logger?.log("Starting audio file processing for: \(audioFileURL.path)", level: .info)
         
-        // pythonBridge?.transcribeAudio(audioFileURL) { [weak self] result in
-        //     DispatchQueue.main.async {
-        //         switch result {
-        //         case .success(let transcribedText):
-        //             self?.logger?.log("Transcription completed successfully", level: .info)
-        //             self?.handleTranscribedText(transcribedText)
-        //         case .failure(let error):
-        //             self?.logger?.logError(error, context: "Transcription failed")
-        //             self?.logger?.log("Transcription failed with error: \(error.localizedDescription)", level: .error)
-        //             self?.showErrorAlert("Transcription failed: \(error.localizedDescription)")
-        //         }
-        //     }
-        // }
+        pythonBridge?.transcribeAudio(audioFileURL) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let transcribedText):
+                    self?.logger?.log("Transcription completed successfully", level: .info)
+                    self?.handleTranscribedText(transcribedText)
+                case .failure(let error):
+                    self?.logger?.logError(error, context: "Transcription failed")
+                    self?.logger?.log("Transcription failed with error: \(error.localizedDescription)", level: .error)
+                    self?.showErrorAlert("Transcription failed: \(error.localizedDescription)")
+                }
+            }
+        }
     }
         
     // MARK: - UI Updates
