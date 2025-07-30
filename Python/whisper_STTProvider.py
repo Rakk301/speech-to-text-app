@@ -7,27 +7,21 @@ import logging
 import whisper
 from typing import Dict, Any
 from pathlib import Path
+from base_STTProvider import BaseSTTProvider
 
-
-class WhisperWrapper:
-    """Wrapper for Whisper speech-to-text model."""
+class WhisperProvider(BaseSTTProvider):
+    """Whisper STT provider."""
     
     def __init__(self, config: Dict[str, Any]):
-        """
-        Initialize Whisper wrapper.
-        
-        Args:
-            config: Whisper configuration dictionary
-        """
-        self.logger = logging.getLogger(__name__)
         self.config = config
         self.model = None
+        self.logger = logging.getLogger(__name__)
         self._load_model()
     
-    def _load_model(self) -> None:
-        """Load Whisper model based on configuration."""
+    def _load_model(self):
+        """Load Whisper model."""
         try:
-            model_name = self.config.get("model", "base")
+            model_name = self.config.get("model", "small")
             self.logger.info(f"Loading Whisper model: {model_name}")
             
             self.model = whisper.load_model(model_name)
@@ -37,17 +31,10 @@ class WhisperWrapper:
         except Exception as e:
             self.logger.error(f"Failed to load Whisper model: {e}")
             raise
+        
     
     def transcribe(self, audio_path: str) -> str:
-        """
-        Transcribe audio file using Whisper.
-        
-        Args:
-            audio_path: Path to audio file
-            
-        Returns:
-            Transcribed text
-        """
+        """Transcribe with Whisper."""
         try:
             self.logger.info(f"Transcribing audio: {audio_path}")
             
@@ -72,3 +59,8 @@ class WhisperWrapper:
         except Exception as e:
             self.logger.error(f"Transcription failed: {e}")
             raise
+
+    
+    def is_available(self) -> bool:
+        """Whisper is always available (local)."""
+        return True if self.model else False

@@ -1,5 +1,9 @@
 # Speech-to-Text Application Configuration
 
+# Model Selection
+stt:
+  provider: "whisper"
+
 # Audio Settings
 audio:
   sample_rate: 16000

@@ -52,4 +52,9 @@ class Config:
     def audio(self) -> Dict[str, Any]:
         """Get audio configuration."""
         return self.config.get("audio", {})
+    
+    @property
+    def stt(self) -> Dict[str, Any]:
+        """Get STT configuration."""
+        return self.config.get("stt", {})
         
