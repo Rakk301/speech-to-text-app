@@ -150,10 +150,16 @@ async def create_app(config_path: str) -> web.Application:
 
 async def main():
     """Main entry point for the server."""
-    import sys
+    import argparse
     
-    # Get config path from command line or use default
-    config_path = sys.argv[1] if len(sys.argv) > 1 else "../Config/settings.yaml"
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Transcription Server')
+    parser.add_argument('config_path', nargs='?', default='../Config/settings.yaml',
+                       help='Path to configuration file')
+    parser.add_argument('--host', default='localhost', help='Host to bind to')
+    parser.add_argument('--port', type=int, default=8080, help='Port to bind to')
+    
+    args = parser.parse_args()
     
     # Setup logging
     logging.basicConfig(
@@ -162,14 +168,14 @@ async def main():
     )
     
     # Create and start server
-    app = await create_app(config_path)
+    app = await create_app(args.config_path)
     runner = web.AppRunner(app)
     await runner.setup()
     
-    site = web.TCPSite(runner, 'localhost', 8080)
+    site = web.TCPSite(runner, args.host, args.port)
     await site.start()
     
-    print("🚀 Transcription server started on http://localhost:8080")
+    print(f"🚀 Transcription server started on http://{args.host}:{args.port}")
     print("📋 Available endpoints:")
     print("  POST /transcribe - Transcribe audio file")
     print("  GET  /providers  - List available providers")
