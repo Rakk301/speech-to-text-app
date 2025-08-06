@@ -59,6 +59,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         serverManager = ServerManager()
         logger?.log("TranscriptionServerClient component initialized", level: .debug)
         
+        // Test accessibility permissions for seamless pasting
+        if let pasteManager = pasteManager {
+            let hasPermissions = pasteManager.testAccessibilityPermissions()
+            logger?.log("Accessibility permissions for seamless pasting: \(hasPermissions ? "✅ Granted" : "⚠️ Not granted - will fallback to clipboard")", level: .info)
+        }
+        
         // Set up hotkey callback
         hotkeyManager?.onHotkeyPressed = { [weak self] in
             self?.handleHotkeyPress()
@@ -160,17 +166,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
 
     private func handleTranscribedText(_ text: String) {
+        logger?.log("Handling transcribed text: \(text)", level: .info)
         
-        logger?.log("Testing clipboard-only functionality with text: \(text)")
+        // Use PasteManager for seamless paste at live cursor position
+        pasteManager?.pasteText(text) { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.logger?.log("✅ Text pasted seamlessly at cursor", level: .info)
+                    // Optional: Show success notification
+                    // self?.showSuccessNotification("Text transcribed and pasted!")
+                } else {
+                    self?.logger?.log("❌ Failed to paste at cursor, falling back to clipboard", level: .error)
+                    // Fallback: Copy to clipboard for manual paste
+                    self?.fallbackToClipboard(text)
+                }
+            }
+        }
+    }
+    
+    private func fallbackToClipboard(_ text: String) {
+        logger?.log("Falling back to clipboard-only mode", level: .info)
         
         // Save original clipboard content
         let originalContent = NSPasteboard.general.string(forType: .string)
         
-        // Copy test text to clipboard
+        // Copy transcribed text to clipboard
         NSPasteboard.general.clearContents()
         if NSPasteboard.general.setString(text, forType: .string) {
             logger?.log("✅ Text copied to clipboard successfully!")
-            // showSuccessAlert("Text copied to clipboard! Press Cmd+V to paste it manually.")
+            logger?.log("💡 Press Cmd+V to paste manually", level: .info)
             
             // Restore original clipboard after a delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 30.0) {
@@ -182,27 +206,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             logger?.log("❌ Failed to copy text to clipboard", level: .error)
-            // showErrorAlert("Failed to copy text to clipboard")
         }
     }
 
-    // // MARK: - Text Processing
-    // private func handleTranscribedText(_ text: String) {
-    //     logger?.log("Handling transcribed text: \(text)", level: .info)
-        
-    //     // Paste the transcribed text at the cursor
-    //     pasteManager?.pasteText(text) { [weak self] success in
-    //         DispatchQueue.main.async {
-    //             if success {
-    //                 self?.logger?.log("Text pasted successfully", level: .info)
-    //                 // self?.showSuccessNotification("Text transcribed and pasted!")
-    //             } else {
-    //                 self?.logger?.log("Failed to paste text", level: .error)
-    //                 // self?.showErrorAlert("Failed to paste text")
-    //             }
-    //         }
-    //     }
-    // }
+
     
     // MARK: - UI Updates
     private func updateMenuBarIcon(recording: Bool) {

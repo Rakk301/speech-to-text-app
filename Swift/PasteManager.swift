@@ -26,26 +26,28 @@ class PasteManager {
     
     // MARK: - Public Methods
     func pasteText(_ text: String, completion: @escaping (Bool) -> Void) {
+        print("[PasteManager] Starting seamless paste operation for text: \(text)")
+        
         // Step 1: Save original clipboard content
         saveOriginalClipboard()
         
-        // Step 2: Try cursor positioning (with accessibility)
-        if pasteAtCursorPosition(text) {
+        // Step 2: Copy text to clipboard
+        guard copyTextToClipboard(text) else {
             restoreOriginalClipboard()
-            completion(true)
+            completion(false)
             return
         }
         
-        // Step 3: Fallback to clipboard paste
-        if pasteToClipboard(text) {
+        // Step 3: Immediately simulate paste at live cursor position
+        if simulatePasteAtCursor() {
+            print("[PasteManager] ✅ Text pasted seamlessly at cursor")
             restoreOriginalClipboard()
             completion(true)
-            return
+        } else {
+            print("[PasteManager] ❌ Failed to paste at cursor")
+            restoreOriginalClipboard()
+            completion(false)
         }
-        
-        // Step 4: Restore clipboard even if paste failed
-        restoreOriginalClipboard()
-        completion(false)
     }
     
     // MARK: - Private Methods
@@ -63,85 +65,129 @@ class PasteManager {
         originalClipboardContent = nil
     }
     
-    private func pasteAtCursorPosition(_ text: String) -> Bool {
+    private func copyTextToClipboard(_ text: String) -> Bool {
+        pasteboard.clearContents()
+        
+        guard pasteboard.setString(text, forType: .string) else {
+            print("[PasteManager] Failed to copy text to clipboard")
+            return false
+        }
+        
+        print("[PasteManager] Text copied to clipboard successfully")
+        return true
+    }
+    
+    private func simulatePasteAtCursor() -> Bool {
         // Check accessibility permissions
         guard checkAccessibilityPermissions() else {
             print("[PasteManager] Accessibility permissions not granted")
             return false
         }
         
-        // Get current cursor position
-        guard let cursorPosition = getCursorPosition() else {
-            print("[PasteManager] Failed to get cursor position")
-            return false
-        }
-        
-        // Type the text at cursor position
-        return typeTextAtPosition(text, position: cursorPosition)
-    }
-    
-    private func pasteToClipboard(_ text: String) -> Bool {
-        // Clear existing content
-        pasteboard.clearContents()
-        
-        // Set new text content
-        guard pasteboard.setString(text, forType: .string) else {
-            print("[PasteManager] Failed to set text in clipboard")
-            return false
-        }
-        
-        print("[PasteManager] Text copied to clipboard successfully")
-        
-        // Simulate Cmd+V to paste
-        return simulatePasteShortcut()
+        // Use AppleScript to paste at current live cursor position
+        return executePasteAppleScript()
     }
     
     private func checkAccessibilityPermissions() -> Bool {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): false]
-        return AXIsProcessTrustedWithOptions(options as CFDictionary)
-    }
-    
-    private func getCursorPosition() -> CGPoint? {
-        // Get the current mouse position as a fallback
-        // In a real implementation, you'd use accessibility APIs to get the actual text cursor position
-        let mouseLocation = NSEvent.mouseLocation
-        return CGPoint(x: mouseLocation.x, y: mouseLocation.y)
-    }
-    
-    private func typeTextAtPosition(_ text: String, position: CGPoint) -> Bool {
-        // This is a simplified implementation
-        // In a real app, you'd use accessibility APIs to type at the specific position
+        let isTrusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
         
-        // For now, we'll use the system-wide pasteboard and simulate typing
-        return simulateTyping(text)
-    }
-    
-    private func simulateTyping(_ text: String) -> Bool {
-        // Use AppleScript to type the text
-        let script = """
-        tell application "System Events"
-            keystroke "\(text)"
-        end tell
-        """
-        
-        let appleScript = NSAppleScript(source: script)
-        var error: NSDictionary?
-        appleScript?.executeAndReturnError(&error)
-        
-        if error != nil {
-            print("[PasteManager] Failed to simulate typing: \(error?.description ?? "unknown error")")
+        if !isTrusted {
+            print("[PasteManager] Accessibility permissions not granted. Please enable in System Preferences > Security & Privacy > Privacy > Accessibility")
         }
         
-        return error == nil
+        return isTrusted
     }
-
     
-    
-    private func simulatePasteShortcut() -> Bool {
-        // Use AppleScript to simulate Cmd+V
+    private func executePasteAppleScript() -> Bool {
+        // AppleScript to paste at current live cursor position
         let script = """
         tell application "System Events"
+            -- Get the frontmost application
+            set frontApp to name of first application process whose frontmost is true
+            
+            -- Activate the frontmost app to ensure focus
+            tell application frontApp to activate
+            
+            -- Small delay to ensure app is focused
+            delay 0.05
+            
+            -- Simulate Cmd+V to paste at live cursor position
             key code 9 using command down
+            
+            return true
+        end tell
+        """
+        
+        let appleScript = NSAppleScript(source: script)
+        var error: NSDictionary?
+        let result = appleScript?.executeAndReturnError(&error)
+        
+        if let error = error {
+            print("[PasteManager] AppleScript error: \(error)")
+            
+            // More detailed error analysis
+            if let errorNumber = error[NSAppleScript.errorNumber] as? Int {
+                switch errorNumber {
+                case -1743:
+                    print("[PasteManager] ❌ Apple Events permission denied. Please grant permission in System Preferences > Privacy & Security > Automation")
+                case -1740:
+                    print("[PasteManager] ❌ Accessibility permission denied. Please grant permission in System Preferences > Privacy & Security > Accessibility")
+                default:
+                    print("[PasteManager] ❌ AppleScript error number: \(errorNumber)")
+                }
+            }
+            
+            return false
+        }
+        
+        return result?.booleanValue ?? false
+    }
+    
+    // MARK: - Alternative Methods (for debugging)
+    func pasteWithDelay(_ text: String, delay: TimeInterval = 2, completion: @escaping (Bool) -> Void) {
+        print("[PasteManager] Starting delayed paste operation")
+        
+        // Save original clipboard
+        saveOriginalClipboard()
+        
+        // Copy to clipboard
+        guard copyTextToClipboard(text) else {
+            restoreOriginalClipboard()
+            completion(false)
+            return
+        }
+        
+        // Wait for specified delay then paste
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            let success = self?.executePasteAppleScript() ?? false
+            self?.restoreOriginalClipboard()
+            completion(success)
+        }
+    }
+    
+    func testAccessibilityPermissions() -> Bool {
+        let hasPermissions = checkAccessibilityPermissions()
+        print("[PasteManager] Accessibility permissions: \(hasPermissions ? "✅ Granted" : "❌ Not granted")")
+        
+        // Also test Apple Events permission
+        let appleEventsTest = testAppleEventsPermission()
+        print("[PasteManager] Apple Events permissions: \(appleEventsTest ? "✅ Granted" : "❌ Not granted")")
+        
+        // If Apple Events not granted, try to trigger permission request
+        if !appleEventsTest {
+            print("[PasteManager] 🔄 Attempting to trigger Apple Events permission request...")
+            triggerAppleEventsPermissionRequest()
+        }
+        
+        return hasPermissions && appleEventsTest
+    }
+    
+    private func triggerAppleEventsPermissionRequest() {
+        // Try to trigger the permission request by attempting a simple AppleScript
+        let script = """
+        tell application "System Events"
+            return "permission test"
         end tell
         """
         
@@ -149,10 +195,28 @@ class PasteManager {
         var error: NSDictionary?
         appleScript?.executeAndReturnError(&error)
         
-        if error != nil {
-            print("[PasteManager] Failed to simulate paste shortcut: \(error?.description ?? "unknown error")")
+        // We expect this to fail, but it should trigger the permission dialog
+        if let error = error {
+            print("[PasteManager] Permission request triggered. Please check for a permission dialog.")
+        }
+    }
+    
+    private func testAppleEventsPermission() -> Bool {
+        let script = """
+        tell application "System Events"
+            return "test"
+        end tell
+        """
+        
+        let appleScript = NSAppleScript(source: script)
+        var error: NSDictionary?
+        let result = appleScript?.executeAndReturnError(&error)
+        
+        if let error = error {
+            print("[PasteManager] Apple Events test failed: \(error)")
+            return false
         }
         
-        return error == nil
+        return result?.stringValue == "test"
     }
 } 
