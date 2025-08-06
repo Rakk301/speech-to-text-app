@@ -3,43 +3,52 @@ import Foundation
 class ServerManager {
     
     // MARK: - Properties
-    private let projectPath: String
-    private let uvPath: String
+    private let settingsManager: SettingsManager
+    private let folderAccessManager: FolderAccessManager
+    private let logger = Logger()
     private var serverProcess: Process?
     
     // MARK: - Initialization
-    init() {
-        projectPath = "/Users/rakhshaanhussain/Personal Projects/Speech To Text App"
-        uvPath = "/opt/homebrew/bin/uv"
+    init(settingsManager: SettingsManager? = nil, folderAccessManager: FolderAccessManager? = nil) {
+        self.settingsManager = settingsManager ?? SettingsManager()
+        self.folderAccessManager = folderAccessManager ?? FolderAccessManager()
     }
     
     // MARK: - Public Methods
     func startServer(completion: @escaping (Bool) -> Void) {
-        print("[ServerManager] Starting transcription server...")
+        logger.log("[ServerManager] Starting transcription server...", level: .info)
         
-        // Check if uv exists
-        guard FileManager.default.fileExists(atPath: uvPath) else {
-            print("[ServerManager] uv not found at: \(uvPath)")
+        // Check if we have folder access
+        guard folderAccessManager.hasProjectFolderAccess else {
+            logger.log("[ServerManager] No project folder access. Please select project folder in settings.", level: .error)
             completion(false)
             return
         }
         
-        // Check if server script exists
-        let serverScriptPath = projectPath + "/Python/transcription_server.py"
-        guard FileManager.default.fileExists(atPath: serverScriptPath) else {
-            print("[ServerManager] Server script not found at: \(serverScriptPath)")
+        // Get full paths using folder access
+        guard let fullPythonPath = folderAccessManager.getFullPath(for: settingsManager.pythonPath) else {
+            logger.log("[ServerManager] Failed to resolve Python path: \(settingsManager.pythonPath)", level: .error)
             completion(false)
             return
         }
+        
+        guard let fullScriptPath = folderAccessManager.getFullPath(for: settingsManager.scriptPath) else {
+            logger.log("[ServerManager] Failed to resolve script path: \(settingsManager.scriptPath)", level: .error)
+            completion(false)
+            return
+        }
+        
+        logger.log("[ServerManager] Using Python: \(fullPythonPath)", level: .info)
+        logger.log("[ServerManager] Using Script: \(fullScriptPath)", level: .info)
         
         // Create process
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: uvPath)
-        process.arguments = ["run", "python", "transcription_server.py"]
+        process.executableURL = URL(fileURLWithPath: fullPythonPath)
+        process.arguments = [fullScriptPath, "../Config/settings.yaml", "--host", settingsManager.serverHost, "--port", "\(settingsManager.serverPort)"]
         
-        // Set working directory
-        let pythonDirectory = URL(fileURLWithPath: projectPath + "/Python")
-        process.currentDirectoryURL = pythonDirectory
+        // Set working directory to script's directory
+        let scriptDirectory = URL(fileURLWithPath: fullScriptPath).deletingLastPathComponent()
+        process.currentDirectoryURL = scriptDirectory
         
         // Set up pipes for monitoring
         let outputPipe = Pipe()
@@ -48,13 +57,16 @@ class ServerManager {
         process.standardError = errorPipe
         
         // Monitor output for server startup
-        outputPipe.fileHandleForReading.readabilityHandler = { handle in
+        let expectedServerMessage = "Transcription server started on \(settingsManager.getServerURL())"
+        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if data.count > 0, let outputString = String(data: data, encoding: .utf8) {
-                print("[Server stdout] \(outputString)", terminator: "")
+                self?.logger.log("[ServerManager] Server stdout: \(outputString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .debug)
                 
-                // Check if server is ready
-                if outputString.contains("Transcription server started on http://localhost:8080") {
+                // Check if server is ready - look for server start message or listen message
+                if outputString.contains(expectedServerMessage) || 
+                   outputString.contains("Uvicorn running on") ||
+                   outputString.contains("Application startup complete") {
                     DispatchQueue.main.async {
                         completion(true)
                     }
@@ -62,25 +74,20 @@ class ServerManager {
             }
         }
         
-        errorPipe.fileHandleForReading.readabilityHandler = { handle in
+        errorPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if data.count > 0, let errorString = String(data: data, encoding: .utf8) {
-                print("[Server stderr] \(errorString)", terminator: "")
+                self?.logger.log("[ServerManager] Server stderr: \(errorString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .warning)
             }
         }
         
-        // Set up environment
-        var environment = ProcessInfo.processInfo.environment
-        environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-        process.environment = environment
-        
-        // Start the process
+        // Start the process (inherits environment automatically)
         do {
             try process.run()
             serverProcess = process
-            print("[ServerManager] Server process started")
+            logger.log("[ServerManager] Server process started successfully", level: .info)
         } catch {
-            print("[ServerManager] Failed to start server: \(error)")
+            logger.logError(error, context: "[ServerManager] Failed to start server")
             completion(false)
         }
     }
@@ -88,6 +95,6 @@ class ServerManager {
     func stopServer() {
         serverProcess?.terminate()
         serverProcess = nil
-        print("[ServerManager] Server stopped")
+        logger.log("[ServerManager] Server stopped", level: .info)
     }
 } 

@@ -23,13 +23,19 @@ enum TranscriptionServerError: Error, LocalizedError {
 class TranscriptionServerClient {
     
     // MARK: - Properties
-    private let baseURL = "http://localhost:8080"
+    private let settingsManager: SettingsManager
+    private let logger = Logger()
     private let session = URLSession.shared
     private let timeoutInterval: TimeInterval = 30.0
     
+    // MARK: - Initialization
+    init(settingsManager: SettingsManager? = nil) {
+        self.settingsManager = settingsManager ?? SettingsManager()
+    }
+    
     // MARK: - Public Methods
     func transcribeAudio(_ audioFileURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        print("[TranscriptionServer] Starting transcription for: \(audioFileURL.path)")
+        logger.log("[TranscriptionServerClient] Starting transcription for: \(audioFileURL.path)", level: .info)
         
         // Check if file exists
         guard FileManager.default.fileExists(atPath: audioFileURL.path) else {
@@ -37,7 +43,8 @@ class TranscriptionServerClient {
             return
         }
         
-        // Create request
+        // Create request using settings
+        let baseURL = settingsManager.getServerURL()
         guard let url = URL(string: "\(baseURL)/transcribe") else {
             completion(.failure(TranscriptionServerError.invalidResponse))
             return
@@ -79,7 +86,7 @@ class TranscriptionServerClient {
                 }
                 
                 if let transcription = json?["transcription"] as? String {
-                    print("[TranscriptionServer] Transcription successful: \(transcription)")
+                    self.logger.log("[TranscriptionServerClient] Transcription successful: \(transcription)", level: .info)
                     completion(.success(transcription))
                 } else {
                     completion(.failure(TranscriptionServerError.invalidResponse))
@@ -93,6 +100,7 @@ class TranscriptionServerClient {
     }
     
     func checkServerHealth(completion: @escaping (Bool) -> Void) {
+        let baseURL = settingsManager.getServerURL()
         guard let url = URL(string: "\(baseURL)/health") else {
             completion(false)
             return
