@@ -22,6 +22,7 @@ class PasteManager {
     
     // MARK: - Properties
     private let pasteboard = NSPasteboard.general
+    private let logger = Logger()
     private var originalClipboardContent: String?
     
     // MARK: - Public Methods
@@ -51,14 +52,14 @@ class PasteManager {
     // MARK: - Private Methods
     private func saveOriginalClipboard() {
         originalClipboardContent = pasteboard.string(forType: .string)
-        print("[PasteManager] Saved original clipboard content")
+        logger.log("[PasteManager] Saved original clipboard content", level: .debug)
     }
     
     private func restoreOriginalClipboard() {
         if let originalContent = originalClipboardContent {
             pasteboard.clearContents()
             pasteboard.setString(originalContent, forType: .string)
-            print("[PasteManager] Restored original clipboard content")
+            logger.log("[PasteManager] Restored original clipboard content", level: .debug)
         }
         originalClipboardContent = nil
     }
@@ -66,13 +67,13 @@ class PasteManager {
     private func pasteAtCursorPosition(_ text: String) -> Bool {
         // Check accessibility permissions
         guard checkAccessibilityPermissions() else {
-            print("[PasteManager] Accessibility permissions not granted")
+            logger.log("[PasteManager] Accessibility permissions not granted", level: .warning)
             return false
         }
         
         // Get current cursor position
         guard let cursorPosition = getCursorPosition() else {
-            print("[PasteManager] Failed to get cursor position")
+            logger.log("[PasteManager] Failed to get cursor position", level: .warning)
             return false
         }
         
@@ -86,11 +87,11 @@ class PasteManager {
         
         // Set new text content
         guard pasteboard.setString(text, forType: .string) else {
-            print("[PasteManager] Failed to set text in clipboard")
+            logger.log("[PasteManager] Failed to set text in clipboard", level: .error)
             return false
         }
         
-        print("[PasteManager] Text copied to clipboard successfully")
+        logger.log("[PasteManager] Text copied to clipboard successfully", level: .info)
         
         // Simulate Cmd+V to paste
         return simulatePasteShortcut()
@@ -129,7 +130,7 @@ class PasteManager {
         appleScript?.executeAndReturnError(&error)
         
         if error != nil {
-            print("[PasteManager] Failed to simulate typing: \(error?.description ?? "unknown error")")
+            logger.log("[PasteManager] Failed to simulate typing: \(error?.description ?? "unknown error")", level: .error)
         }
         
         return error == nil
@@ -150,7 +151,7 @@ class PasteManager {
         appleScript?.executeAndReturnError(&error)
         
         if error != nil {
-            print("[PasteManager] Failed to simulate paste shortcut: \(error?.description ?? "unknown error")")
+            logger.log("[PasteManager] Failed to simulate paste shortcut: \(error?.description ?? "unknown error")", level: .error)
         }
         
         return error == nil

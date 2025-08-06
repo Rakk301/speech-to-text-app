@@ -24,6 +24,7 @@ class HotkeyManager {
     // Local hotkey monitor (works without permissions)
     private var localMonitor: Any?
     private var logger: Logger?
+    private var settingsManager: SettingsManager?
     
     // Callback for when hotkey is pressed
     var onHotkeyPressed: (() -> Void)?
@@ -31,6 +32,7 @@ class HotkeyManager {
     // MARK: - Initialization
     init() {
         logger = Logger()
+        settingsManager = SettingsManager()
         setupLocalHotkey() // Always works
         setupHotkey()      // Global hotkey (if permissions)
     }
@@ -41,16 +43,33 @@ class HotkeyManager {
     
     // MARK: - Public Methods
     func registerHotkey() throws {
-        logger?.log("Attempting to register global hotkey (⌘⇧⌥T)", level: .debug)
+        guard let settings = settingsManager else {
+            logger?.log("Settings manager not available for hotkey registration", level: .error)
+            throw HotkeyManagerError.registrationFailed
+        }
+        
+        let hotkeyDisplay = settings.getHotkeyDisplayString()
+        logger?.log("Attempting to register global hotkey (\(hotkeyDisplay))", level: .debug)
+        
         // Check if accessibility permissions are granted
         guard checkAccessibilityPermissions() else {
             logger?.log("Accessibility permission denied for global hotkey", level: .warning)
             throw HotkeyManagerError.permissionDenied
         }
         
-        // Register the hotkey (⌘⇧⌥T) - Command + Shift + Option + T
-        let modifiers: UInt32 = UInt32(cmdKey | shiftKey | optionKey)
-        let keyCode = UInt32(kVK_ANSI_T)
+        // Build modifiers from settings
+        var modifiers: UInt32 = 0
+        for modifier in settings.hotkeyModifiers {
+            switch modifier {
+            case "command": modifiers |= UInt32(cmdKey)
+            case "shift": modifiers |= UInt32(shiftKey)
+            case "option": modifiers |= UInt32(optionKey)
+            case "control": modifiers |= UInt32(controlKey)
+            default: break
+            }
+        }
+        
+        let keyCode = UInt32(settings.hotkeyKeyCode)
         
         let status = RegisterEventHotKey(keyCode, modifiers, hotkeyID, GetApplicationEventTarget(), 0, &hotkeyRef)
         
@@ -58,7 +77,7 @@ class HotkeyManager {
             logger?.log("Global hotkey registration failed with status: \(status)", level: .error)
             throw HotkeyManagerError.registrationFailed
         }
-        logger?.log("Global hotkey registered successfully", level: .info)
+        logger?.log("Global hotkey (\(hotkeyDisplay)) registered successfully", level: .info)
         // Install event handler
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: OSType(kEventHotKeyPressed))
         
@@ -95,7 +114,8 @@ class HotkeyManager {
     }
     
     private func handleHotkeyEvent() {
-        logger?.log("Global hotkey pressed (⌘⇧⌥T)", level: .info)
+        let hotkeyDisplay = settingsManager?.getHotkeyDisplayString() ?? "Unknown"
+        logger?.log("Global hotkey pressed (\(hotkeyDisplay))", level: .info)
         DispatchQueue.main.async { [weak self] in
             self?.onHotkeyPressed?()
         }
@@ -108,17 +128,39 @@ class HotkeyManager {
     
     // Local hotkey (works immediately, no permissions needed)
     private func setupLocalHotkey() {
-        logger?.log("Setting up local hotkey (⌘⇧⌥T)", level: .debug)
+        guard let settings = settingsManager else {
+            logger?.log("Settings manager not available for local hotkey setup", level: .error)
+            return
+        }
+        
+        let hotkeyDisplay = settings.getHotkeyDisplayString()
+        logger?.log("Setting up local hotkey (\(hotkeyDisplay))", level: .debug)
+        
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == [.command, .shift, .option],
-               event.keyCode == kVK_ANSI_T {
-                self?.logger?.log("Local hotkey pressed (⌘⇧⌥T)", level: .info)
-                self?.onHotkeyPressed?()
+            guard let self = self, let settings = self.settingsManager else { return event }
+            
+            // Build expected modifier flags
+            var expectedModifiers: NSEvent.ModifierFlags = []
+            for modifier in settings.hotkeyModifiers {
+                switch modifier {
+                case "command": expectedModifiers.insert(.command)
+                case "shift": expectedModifiers.insert(.shift)
+                case "option": expectedModifiers.insert(.option)
+                case "control": expectedModifiers.insert(.control)
+                default: break
+                }
+            }
+            
+            let actualModifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            
+            if actualModifiers == expectedModifiers && Int(event.keyCode) == settings.hotkeyKeyCode {
+                self.logger?.log("Local hotkey pressed (\(hotkeyDisplay))", level: .info)
+                self.onHotkeyPressed?()
                 return nil // Swallow the keystroke
             }
             return event
         }
-        logger?.log("Local hotkey registered successfully", level: .info)
+        logger?.log("Local hotkey (\(hotkeyDisplay)) registered successfully", level: .info)
     }
     
     private func cleanup() {
