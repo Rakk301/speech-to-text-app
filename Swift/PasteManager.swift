@@ -134,6 +134,8 @@ class PasteManager {
         
         return error == nil
     }
+
+    
     
     private func simulatePasteShortcut() -> Bool {
         // Use AppleScript to simulate Cmd+V

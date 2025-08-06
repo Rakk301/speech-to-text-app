@@ -31,7 +31,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var audioRecorder: AudioRecorder?
     private var hotkeyManager: HotkeyManager?
     private var pasteManager: PasteManager?
-    private var pythonBridge: PythonBridge?
+    private var transcriptionClient: TranscriptionServerClient?
+    private var serverManager: ServerManager?
     private var logger: Logger?
     
     private var isRecording = false
@@ -40,6 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupComponents()
         setupMenuBar()
+        startTranscriptionServer()
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -53,8 +55,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         audioRecorder = AudioRecorder()
         hotkeyManager = HotkeyManager()
         pasteManager = PasteManager()
-        pythonBridge = PythonBridge()
-        logger?.log("PythonBridge component initialized", level: .debug)
+        transcriptionClient = TranscriptionServerClient()
+        serverManager = ServerManager()
+        logger?.log("TranscriptionServerClient component initialized", level: .debug)
         
         // Set up hotkey callback
         hotkeyManager?.onHotkeyPressed = { [weak self] in
@@ -62,6 +65,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         logger?.log("App Components Initialized", level: .debug)
+    }
+    
+    private func startTranscriptionServer() {
+        logger?.log("Starting transcription server...", level: .info)
+        
+        serverManager?.startServer { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.logger?.log("Transcription server started successfully", level: .info)
+                    self?.updateMenuBarIcon(serverRunning: true)
+                } else {
+                    self?.logger?.log("Failed to start transcription server", level: .error)
+                    self?.updateMenuBarIcon(serverRunning: false)
+                }
+            }
+        }
     }
     
     private func setupMenuBar() {
@@ -125,7 +144,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func processAudioFile(_ audioFileURL: URL) {
         logger?.log("Starting audio file processing for: \(audioFileURL.path)", level: .info)
         
-        pythonBridge?.transcribeAudio(audioFileURL) { [weak self] result in
+        transcriptionClient?.transcribeAudio(audioFileURL) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let transcribedText):
@@ -134,7 +153,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 case .failure(let error):
                     self?.logger?.logError(error, context: "Transcription failed")
                     self?.logger?.log("Transcription failed with error: \(error.localizedDescription)", level: .error)
-                    // self?.showErrorAlert("Transcription failed: \(error.localizedDescription)")
                 }
             }
         }
@@ -193,11 +211,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    private func updateMenuBarIcon(serverRunning: Bool) {
+        if let button = statusItem?.button {
+            button.title = serverRunning ? "✅" : "⚠️"
+        }
+    }
+    
     // MARK: - Cleanup
     private func cleanup() {
         if isRecording {
             _ = audioRecorder?.stopRecording()
         }
+        serverManager?.stopServer()
         logger?.log("App terminating")
     }
 }
