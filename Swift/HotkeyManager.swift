@@ -53,7 +53,7 @@ class HotkeyManager {
         
         // Check if accessibility permissions are granted
         guard checkAccessibilityPermissions() else {
-            logger?.log("Accessibility permission denied for global hotkey", level: .warning)
+            logger?.log("[HotkeyManager] Accessibility permission denied for global hotkey", level: .warning)
             throw HotkeyManagerError.permissionDenied
         }
         
@@ -103,19 +103,19 @@ class HotkeyManager {
         do {
             try registerHotkey()
         } catch {
-            logger?.log("Failed to register global hotkey: \(error.localizedDescription)", level: .warning)
-            logger?.log("To enable global hotkeys:", level: .info)
-            logger?.log("1. Open System Settings", level: .info)
-            logger?.log("2. Go to Privacy & Security > Accessibility", level: .info)
-            logger?.log("3. Find 'Speech To Text App' in the list", level: .info)
-            logger?.log("4. Toggle the switch to enable access", level: .info)
-            logger?.log("5. Restart the app", level: .info)
+            logger?.log("[HotkeyManager] Failed to register global hotkey: \(error.localizedDescription)", level: .warning)
+            logger?.log("[HotkeyManager] To enable global hotkeys:", level: .info)
+            logger?.log("[HotkeyManager] 1. Open System Settings", level: .info)
+            logger?.log("[HotkeyManager] 2. Go to Privacy & Security > Accessibility", level: .info)
+            logger?.log("[HotkeyManager] 3. Find 'Speech To Text App' in the list", level: .info)
+            logger?.log("[HotkeyManager] 4. Toggle the switch to enable access", level: .info)
+            logger?.log("[HotkeyManager] 5. Restart the app", level: .info)
         }
     }
     
     private func handleHotkeyEvent() {
         let hotkeyDisplay = settingsManager?.getHotkeyDisplayString() ?? "Unknown"
-        logger?.log("Global hotkey pressed (\(hotkeyDisplay))", level: .info)
+        logger?.log("[HotkeyManager] Global hotkey pressed (\(hotkeyDisplay))", level: .info)
         DispatchQueue.main.async { [weak self] in
             self?.onHotkeyPressed?()
         }
@@ -129,12 +129,12 @@ class HotkeyManager {
     // Local hotkey (works immediately, no permissions needed)
     private func setupLocalHotkey() {
         guard let settings = settingsManager else {
-            logger?.log("Settings manager not available for local hotkey setup", level: .error)
+            logger?.log("[HotkeyManager] Settings manager not available for local hotkey setup", level: .error)
             return
         }
         
         let hotkeyDisplay = settings.getHotkeyDisplayString()
-        logger?.log("Setting up local hotkey (\(hotkeyDisplay))", level: .debug)
+        logger?.log("[HotkeyManager] Setting up local hotkey (\(hotkeyDisplay))", level: .debug)
         
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             guard let self = self, let settings = self.settingsManager else { return event }
@@ -154,33 +154,33 @@ class HotkeyManager {
             let actualModifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
             
             if actualModifiers == expectedModifiers && Int(event.keyCode) == settings.hotkeyKeyCode {
-                self.logger?.log("Local hotkey pressed (\(hotkeyDisplay))", level: .info)
+                self.logger?.log("[HotkeyManager] Local hotkey pressed (\(hotkeyDisplay))", level: .info)
                 self.onHotkeyPressed?()
                 return nil // Swallow the keystroke
             }
             return event
         }
-        logger?.log("Local hotkey (\(hotkeyDisplay)) registered successfully", level: .info)
+        logger?.log("[HotkeyManager] Local hotkey (\(hotkeyDisplay)) registered successfully", level: .info)
     }
     
     private func cleanup() {
-        logger?.log("Cleaning up HotkeyManager", level: .debug)
+        logger?.log("[HotkeyManager] Cleaning up HotkeyManager", level: .debug)
         // Clean up local monitor
         if let localMonitor = localMonitor {
             NSEvent.removeMonitor(localMonitor)
             self.localMonitor = nil
-            logger?.log("Local hotkey monitor removed", level: .debug)
+            logger?.log("[HotkeyManager] Local hotkey monitor removed", level: .debug)
         }
         // Clean up global hotkey
         if let hotkeyRef = hotkeyRef {
             UnregisterEventHotKey(hotkeyRef)
             self.hotkeyRef = nil
-            logger?.log("Global hotkey unregistered", level: .debug)
+            logger?.log("[HotkeyManager] Global hotkey unregistered", level: .debug)
         }
         if let eventHandler = eventHandler {
             RemoveEventHandler(eventHandler)
             self.eventHandler = nil
-            logger?.log("Global hotkey event handler removed", level: .debug)
+            logger?.log("[HotkeyManager] Global hotkey event handler removed", level: .debug)
         }
     }
 } 

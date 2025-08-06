@@ -43,13 +43,13 @@ class NotificationManager: ObservableObject {
     // MARK: - Private Methods
     private func setupAudio() {
         // No audio session setup needed on macOS - NSSound handles this automatically
-        logger.log("Audio setup complete for notifications", level: .debug)
+        logger.log("[NotificationManager] Audio setup complete for notifications", level: .debug)
     }
     
     private func playSuccessSound() {
         // Use system sound for success
         NSSound.beep()
-        logger.log("Played success notification sound", level: .debug)
+        logger.log("[NotificationManager] Played success notification sound", level: .debug)
     }
     
     private func playErrorSound() {
@@ -59,7 +59,7 @@ class NotificationManager: ObservableObject {
         } else {
             NSSound.beep()
         }
-        logger.log("Played error notification sound", level: .debug)
+        logger.log("[NotificationManager] Played error notification sound", level: .debug)
     }
     
     private func playStartSound() {
@@ -67,7 +67,7 @@ class NotificationManager: ObservableObject {
         if let sound = NSSound(named: "Glass") {
             sound.play()
         }
-        logger.log("Played recording start sound", level: .debug)
+        logger.log("[NotificationManager] Played recording start sound", level: .debug)
     }
     
     private func playStopSound() {
@@ -75,7 +75,7 @@ class NotificationManager: ObservableObject {
         if let sound = NSSound(named: "Tink") {
             sound.play()
         }
-        logger.log("Played recording stop sound", level: .debug)
+        logger.log("[NotificationManager] Played recording stop sound", level: .debug)
     }
     
     private func requestNotificationPermissions() {
@@ -83,11 +83,11 @@ class NotificationManager: ObservableObject {
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    self.logger.logError(error, context: "Failed to request notification permissions")
+                    self.logger.logError(error, context: "[NotificationManager] Failed to request notification permissions")
                 } else if granted {
-                    self.logger.log("Notification permissions granted", level: .info)
+                    self.logger.log("[NotificationManager] Notification permissions granted", level: .info)
                 } else {
-                    self.logger.log("Notification permissions denied - will use sound only", level: .warning)
+                    self.logger.log("[NotificationManager] Notification permissions denied - will use sound only", level: .warning)
                 }
             }
         }
@@ -97,7 +97,7 @@ class NotificationManager: ObservableObject {
         // Check if we have permission first
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             guard settings.authorizationStatus == .authorized else {
-                self.logger.log("Notifications not authorized - skipping banner", level: .debug)
+                self.logger.log("[NotificationManager] Notifications not authorized - skipping banner", level: .debug)
                 return
             }
             
@@ -114,9 +114,9 @@ class NotificationManager: ObservableObject {
             
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
-                    self.logger.logError(error, context: "Failed to show success notification")
+                    self.logger.logError(error, context: "[NotificationManager] Failed to show success notification")
                 } else {
-                    self.logger.log("Showed success notification", level: .debug)
+                    self.logger.log("[NotificationManager] Showed success notification", level: .debug)
                 }
             }
         }
@@ -126,7 +126,7 @@ class NotificationManager: ObservableObject {
         // Check if we have permission first
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             guard settings.authorizationStatus == .authorized else {
-                self.logger.log("Notifications not authorized - skipping error banner", level: .debug)
+                self.logger.log("[NotificationManager] Notifications not authorized - skipping error banner", level: .debug)
                 return
             }
             
@@ -143,9 +143,9 @@ class NotificationManager: ObservableObject {
             
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
-                    self.logger.logError(error, context: "Failed to show error notification")
+                    self.logger.logError(error, context: "[NotificationManager] Failed to show error notification")
                 } else {
-                    self.logger.log("Showed error notification: \(message)", level: .debug)
+                    self.logger.log("[NotificationManager] Showed error notification: \(message)", level: .debug)
                 }
             }
         }

@@ -94,8 +94,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func startTranscriptionServer() {
-        logger?.log("Starting transcription server...", level: .info)
-        
         serverManager?.startServer { [weak self] success in
             DispatchQueue.main.async {
                 if success {
@@ -119,8 +117,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Setup popover for menu with our custom MenuBarView
         setupPopover()
-        
-        logger?.log("Menu Bar Setup Complete", level: .debug)
         logger?.log("=== App Setup Complete ===", level: .debug)
     }
     
@@ -135,7 +131,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover?.behavior = .transient
         popover?.contentViewController = NSHostingController(rootView: menuBarView)
         
-        logger?.log("Popover setup complete with MenuBarView", level: .debug)
+        logger?.log("MenuBarView setup complete", level: .debug)
     }
     
     // MARK: - Event Handlers
