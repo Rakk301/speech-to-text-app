@@ -10,10 +10,5 @@
 	<true/>
 	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
-	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
-	<array>
-		<string>/Users/rakhshaanhussain/Personal Projects/Speech To Text App/</string>
-	</array>
 </dict>
 </plist>
-
