@@ -7,20 +7,10 @@ struct SpeechToTextApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        // Menu bar app
+        Settings {
+            SettingsView()
         }
-        // Settings {
-        //     SettingsView()
-        // }
-    }
-}
-
-struct ContentView: View {
-    var body: some View {
-        Text("Hello from Speech-to-Text App!")
-            .font(.title)
-            .fontWeight(.bold)
     }
 }
 
@@ -282,6 +272,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-#Preview {
-    ContentView()
-}
+// No main window preview for a menu bar app

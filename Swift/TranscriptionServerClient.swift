@@ -65,7 +65,7 @@ class TranscriptionServerClient {
             return
         }
         
-        // Make request
+        // Make request (assume server was started by ServerManager; errors will surface here)
         let task = session.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(TranscriptionServerError.networkError(error)))
@@ -95,7 +95,6 @@ class TranscriptionServerClient {
                 completion(.failure(TranscriptionServerError.invalidResponse))
             }
         }
-        
         task.resume()
     }
     

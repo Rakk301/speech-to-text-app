@@ -42,7 +42,7 @@ class SettingsManager: ObservableObject {
     @Published var hotkeyKeyCode: Int = 37  // L key
     @Published var hotkeyModifiers: [String] = ["option"]
     @Published var serverHost: String = "localhost"
-    @Published var serverPort: Int = 8080
+    @Published var serverPort: Int = 3001
     @Published var pythonPath: String = "Python/.venv/bin/python3"  // Relative to project folder
     @Published var scriptPath: String = "Python/transcription_server.py"  // Relative to project folder
     
@@ -140,51 +140,100 @@ class SettingsManager: ObservableObject {
     private func parseYAMLSettings(_ yamlString: String) {
         let lines = yamlString.components(separatedBy: .newlines)
         
-        for line in lines {
+        enum Section {
+            case none
+            case stt
+            case server
+            case whisper
+            case llm
+            case hotkey
+            case audio
+            case logging
+        }
+        
+        var currentSection: Section = .none
+        
+        for rawLine in lines {
+            // Preserve indentation to detect top-level keys
+            let line = rawLine
             let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty || trimmed.hasPrefix("#") { continue }
             
-            // Whisper settings
-            if trimmed.hasPrefix("model:") {
-                whisperModel = extractValue(from: trimmed) ?? whisperModel
-            } else if trimmed.hasPrefix("language:") {
-                whisperLanguage = extractValue(from: trimmed) ?? whisperLanguage
-            } else if trimmed.hasPrefix("task:") {
-                whisperTask = extractValue(from: trimmed) ?? whisperTask
-            } else if trimmed.hasPrefix("temperature:") {
-                if let tempStr = extractValue(from: trimmed),
-                   let temp = Double(tempStr) {
-                    whisperTemperature = temp
+            // Detect section headers (top-level keys end with ':')
+            let leadingSpaces = line.prefix { $0 == " " }.count
+            if leadingSpaces == 0 && trimmed.hasSuffix(":") {
+                switch trimmed {
+                case "stt:": currentSection = .stt
+                case "server:": currentSection = .server
+                case "whisper:": currentSection = .whisper
+                case "llm:": currentSection = .llm
+                case "hotkey:": currentSection = .hotkey
+                case "audio:": currentSection = .audio
+                case "logging:": currentSection = .logging
+                default: currentSection = .none
                 }
+                continue
             }
-            // Hotkey settings
-            else if trimmed.hasPrefix("key_code:") {
-                if let keyStr = extractValue(from: trimmed),
-                   let key = Int(keyStr) {
-                    hotkeyKeyCode = key
+            
+            // Parse keys within their respective sections only
+            switch currentSection {
+            case .whisper:
+                if trimmed.hasPrefix("model:") {
+                    whisperModel = extractValue(from: trimmed) ?? whisperModel
+                } else if trimmed.hasPrefix("language:") {
+                    whisperLanguage = extractValue(from: trimmed) ?? whisperLanguage
+                } else if trimmed.hasPrefix("task:") {
+                    whisperTask = extractValue(from: trimmed) ?? whisperTask
+                } else if trimmed.hasPrefix("temperature:") {
+                    if let tempStr = extractValue(from: trimmed),
+                       let temp = Double(tempStr) {
+                        whisperTemperature = temp
+                    }
                 }
-            }
-            // Server settings
-            else if trimmed.hasPrefix("host:") {
-                serverHost = extractValue(from: trimmed) ?? serverHost
-            } else if trimmed.hasPrefix("port:") {
-                if let portStr = extractValue(from: trimmed),
-                   let port = Int(portStr) {
-                    serverPort = port
+            case .server:
+                if trimmed.hasPrefix("host:") {
+                    serverHost = extractValue(from: trimmed) ?? serverHost
+                } else if trimmed.hasPrefix("port:") {
+                    if let portStr = extractValue(from: trimmed), let port = Int(portStr) {
+                        serverPort = port
+                    }
+                } else if trimmed.hasPrefix("python_path:") {
+                    pythonPath = extractValue(from: trimmed) ?? pythonPath
+                } else if trimmed.hasPrefix("script_path:") {
+                    scriptPath = extractValue(from: trimmed) ?? scriptPath
                 }
-            } else if trimmed.hasPrefix("python_path:") {
-                pythonPath = extractValue(from: trimmed) ?? pythonPath
-            } else if trimmed.hasPrefix("script_path:") {
-                scriptPath = extractValue(from: trimmed) ?? scriptPath
+            case .hotkey:
+                if trimmed.hasPrefix("key_code:") {
+                    if let keyStr = extractValue(from: trimmed), let key = Int(keyStr) {
+                        hotkeyKeyCode = key
+                    }
+                } else if trimmed.hasPrefix("modifiers:") {
+                    // Basic parsing for modifier list, e.g., modifiers: ["option"]
+                    if let raw = extractValue(from: trimmed) {
+                        let cleaned = raw.replacingOccurrences(of: "[", with: "")
+                            .replacingOccurrences(of: "]", with: "")
+                        let parts = cleaned.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
+                        if !parts.isEmpty { hotkeyModifiers = parts }
+                    }
+                }
+            default:
+                // Ignore keys in other sections here
+                break
             }
         }
     }
     
     private func extractValue(from line: String) -> String? {
-        let components = line.components(separatedBy: ":")
-        guard components.count >= 2 else { return nil }
-        
-        let value = components[1].trimmingCharacters(in: .whitespaces)
-        return value.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+        // Take the substring after the first ':'
+        guard let colonIndex = line.firstIndex(of: ":") else { return nil }
+        var value = String(line[line.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
+        // Strip inline comments
+        if let hashIndex = value.firstIndex(of: "#") {
+            value = String(value[..<hashIndex]).trimmingCharacters(in: .whitespaces)
+        }
+        // Strip surrounding quotes
+        value = value.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+        return value.isEmpty ? nil : value
     }
     
     private func setDefaultSettings() {
@@ -195,7 +244,7 @@ class SettingsManager: ObservableObject {
         hotkeyKeyCode = 37  // L key
         hotkeyModifiers = ["option"]
         serverHost = "localhost"
-        serverPort = 8080
+        serverPort = 3001
         pythonPath = "Python/.venv/bin/python3"  // Relative to project folder
         scriptPath = "Python/transcription_server.py"  // Relative to project folder
         
@@ -210,10 +259,9 @@ class SettingsManager: ObservableObject {
         stt:
           provider: "whisper"
 
-        # Server Settings
+        # Server Settings (port is chosen dynamically at runtime)
         server:
           host: "\(serverHost)"
-          port: \(serverPort)
           python_path: "\(pythonPath)"
           script_path: "\(scriptPath)"
 

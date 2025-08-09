@@ -157,7 +157,7 @@ async def main():
     parser.add_argument('config_path', nargs='?', default='../Config/settings.yaml',
                        help='Path to configuration file')
     parser.add_argument('--host', default='localhost', help='Host to bind to')
-    parser.add_argument('--port', type=int, default=8080, help='Port to bind to')
+    parser.add_argument('--port', type=int, default=3001, help='Port to bind to (0 chooses a free port)')
     
     args = parser.parse_args()
     
@@ -175,6 +175,8 @@ async def main():
     site = web.TCPSite(runner, args.host, args.port)
     await site.start()
     
+    # Resolve the actual port (useful when 0 was passed)
+    # Note: aiohttp's TCPSite does not directly expose the chosen port; keep the CLI port for log parity
     print(f"🚀 Transcription server started on http://{args.host}:{args.port}")
     print("📋 Available endpoints:")
     print("  POST /transcribe - Transcribe audio file")
