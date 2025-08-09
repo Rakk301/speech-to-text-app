@@ -207,46 +207,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         historyManager?.addTranscription(text, audioFileName: audioFileName)
         menuBarView?.addTranscription(text, audioFileName: audioFileName)
         
-        // Save original clipboard content
-        let originalContent = NSPasteboard.general.string(forType: .string)
-        
-        // Copy text to clipboard
-        NSPasteboard.general.clearContents()
-        if NSPasteboard.general.setString(text, forType: .string) {
-            logger?.log("✅ Text copied to clipboard successfully!")
-            notificationManager?.showTranscriptionSuccess()
-            
-            // Restore original clipboard after a delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 30.0) {
-                if let original = originalContent {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(original, forType: .string)
-                    self.logger?.log("✅ Original clipboard content restored")
+        // Paste the transcribed text at the cursor
+        pasteManager?.pasteText(text) { [weak self] success in
+            DispatchQueue.main.async {
+                if success {
+                    self?.logger?.log("Text pasted successfully", level: .info)
+                    self?.notificationManager?.showTranscriptionSuccess()
+                } else {
+                    self?.logger?.log("Failed to paste text", level: .error)
+                    self?.notificationManager?.showTranscriptionError("Failed to paste text")
                 }
             }
-        } else {
-            logger?.log("❌ Failed to copy text to clipboard", level: .error)
-            notificationManager?.showTranscriptionError("Failed to copy text to clipboard")
         }
     }
-
-    // // MARK: - Text Processing
-    // private func handleTranscribedText(_ text: String) {
-    //     logger?.log("Handling transcribed text: \(text)", level: .info)
-        
-    //     // Paste the transcribed text at the cursor
-    //     pasteManager?.pasteText(text) { [weak self] success in
-    //         DispatchQueue.main.async {
-    //             if success {
-    //                 self?.logger?.log("Text pasted successfully", level: .info)
-    //                 // self?.showSuccessNotification("Text transcribed and pasted!")
-    //             } else {
-    //                 self?.logger?.log("Failed to paste text", level: .error)
-    //                 // self?.showErrorAlert("Failed to paste text")
-    //             }
-    //         }
-    //     }
-    // }
+    
+    // MARK: - Text Processing
     
     // MARK: - UI Updates
     // Menu bar icon is now static - status shown via MenuBarView popover and notifications
