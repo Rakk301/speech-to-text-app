@@ -8,9 +8,30 @@ struct SettingsView: View {
     @State private var isRecordingHotkey = false
     
     var onSettingsChanged: (() -> Void)?
+    var onBack: (() -> Void)?
     
     var body: some View {
         VStack(spacing: 20) {
+            // Header with back button
+            HStack {
+                Button(action: {
+                    onBack?()
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Back")
+                            .font(.body)
+                    }
+                    .foregroundColor(.blue)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            
             // Header
             VStack(spacing: 8) {
                 Image(systemName: "mic.fill")
@@ -25,7 +46,7 @@ struct SettingsView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            .padding(.top, 20)
+            .padding(.top, 10)
             
             // Settings Form
             Form {
@@ -46,6 +67,7 @@ struct SettingsView: View {
                     .pickerStyle(MenuPickerStyle())
                     .onChange(of: settingsManager.whisperModel) { _ in
                         settingsManager.saveSettings()
+                        settingsManager.refreshWhisperConfiguration()
                         onSettingsChanged?()
                     }
                     
@@ -66,6 +88,7 @@ struct SettingsView: View {
                     .pickerStyle(MenuPickerStyle())
                     .onChange(of: settingsManager.whisperLanguage) { _ in
                         settingsManager.saveSettings()
+                        settingsManager.refreshWhisperConfiguration()
                         onSettingsChanged?()
                     }
                     
@@ -78,6 +101,7 @@ struct SettingsView: View {
                     .pickerStyle(MenuPickerStyle())
                     .onChange(of: settingsManager.whisperTask) { _ in
                         settingsManager.saveSettings()
+                        settingsManager.refreshWhisperConfiguration()
                         onSettingsChanged?()
                     }
                     
@@ -93,6 +117,7 @@ struct SettingsView: View {
                     }
                     .onChange(of: settingsManager.whisperTemperature) { _ in
                         settingsManager.saveSettings()
+                        settingsManager.refreshWhisperConfiguration()
                         onSettingsChanged?()
                     }
                 }
@@ -123,110 +148,28 @@ struct SettingsView: View {
                             .foregroundColor(.orange)
                     }
                 }
-                
-                Section("Project Folder") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if folderAccessManager.hasProjectFolderAccess {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Project Folder Selected")
-                                        .font(.headline)
-                                        .foregroundColor(.green)
-                                    Text(folderAccessManager.projectFolderPath)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                            }
-                            
-                            Button("Change Folder") {
-                                folderAccessManager.requestProjectFolderAccess()
-                            }
-                            .buttonStyle(.bordered)
-                        } else {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(.orange)
-                                    Text("Select Project Folder")
-                                        .font(.headline)
-                                        .foregroundColor(.orange)
-                                }
-                                
-                                Text("Choose the folder containing your Python transcription server to enable secure access.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                Button("Select Folder") {
-                                    folderAccessManager.requestProjectFolderAccess()
-                                }
-                                .buttonStyle(.borderedProminent)
-                            }
-                        }
-                    }
-                }
-                
-                Section("Server Configuration") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Python Path")
-                            .font(.headline)
-                        TextField("Python/.venv/bin/python3", text: $settingsManager.pythonPath)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .disabled(!folderAccessManager.hasProjectFolderAccess)
-                            .onChange(of: settingsManager.pythonPath) { _ in
-                                settingsManager.saveSettings()
-                                onSettingsChanged?()
-                            }
-                        Text("Relative path to Python executable")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NSEventKeyDown"))) { notification in
+                    guard isRecordingHotkey, let event = notification.object as? NSEvent else { return }
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Script Path")
-                            .font(.headline)
-                        TextField("Python/transcription_server.py", text: $settingsManager.scriptPath)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .disabled(!folderAccessManager.hasProjectFolderAccess)
-                            .onChange(of: settingsManager.scriptPath) { _ in
-                                settingsManager.saveSettings()
-                                onSettingsChanged?()
-                            }
-                        Text("Relative path to transcription server script")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    // Capture the key combination
+                    let keyCode = Int(event.keyCode)
+                    var modifiers: [String] = []
                     
-                    if folderAccessManager.hasProjectFolderAccess {
-                        let validation = folderAccessManager.validatePythonPaths(
-                            pythonPath: settingsManager.pythonPath,
-                            scriptPath: settingsManager.scriptPath
-                        )
-                        
-                        HStack {
-                            Image(systemName: validation.pythonExists ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(validation.pythonExists ? .green : .red)
-                            Text("Python executable")
-                            Spacer()
-                        }
-                        
-                        HStack {
-                            Image(systemName: validation.scriptExists ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(validation.scriptExists ? .green : .red)
-                            Text("Server script")
-                            Spacer()
-                        }
-                    }
+                    if event.modifierFlags.contains(.command) { modifiers.append("command") }
+                    if event.modifierFlags.contains(.shift) { modifiers.append("shift") }
+                    if event.modifierFlags.contains(.option) { modifiers.append("option") }
+                    if event.modifierFlags.contains(.control) { modifiers.append("control") }
                     
-                    HStack {
-                        Text("Server URL")
-                        Spacer()
-                        Text(settingsManager.getServerURL())
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                    }
+                    // Update settings
+                    settingsManager.updateHotkey(keyCode: keyCode, modifiers: modifiers)
+                    settingsManager.saveSettings()
+                    settingsManager.refreshHotkeyConfiguration()
+                    
+                    // Stop recording
+                    isRecordingHotkey = false
+                    
+                    // Notify parent of settings change
+                    onSettingsChanged?()
                 }
                 
                 Section("App Settings") {
@@ -253,6 +196,45 @@ struct SettingsView: View {
                         Spacer()
                         Text("Granted")
                             .foregroundColor(.green)
+                    }
+                    
+                    HStack {
+                        Text("Project Folder")
+                        Spacer()
+                        HStack(spacing: 8) {
+                            Image(systemName: projectFolderStatus.icon)
+                                .foregroundColor(projectFolderStatus.color)
+                                .help(projectFolderStatus.tooltip)
+                            if folderAccessManager.hasProjectFolderAccess {
+                                Button("Change") {
+                                    folderAccessManager.requestProjectFolderAccess()
+                                }
+                                .controlSize(.small)
+                                .buttonStyle(.plain)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(4)
+                            } else {
+                                Button("Select") {
+                                    folderAccessManager.requestProjectFolderAccess()
+                                }
+                                .controlSize(.small)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.accentColor)
+                                .cornerRadius(4)
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Server URL")
+                        Spacer()
+                        Text(settingsManager.getServerURL())
+                            .foregroundColor(.secondary)
+                            .font(.caption)
                     }
                 }
             }
@@ -307,6 +289,28 @@ struct SettingsView: View {
         case "ja": return "Japanese"
         case "zh": return "Chinese"
         default: return code.uppercased()
+        }
+    }
+    
+    private var projectFolderStatus: (icon: String, color: Color, tooltip: String) {
+        // Check all three conditions
+        if !folderAccessManager.hasProjectFolderAccess {
+            return ("folder.badge.questionmark", .orange, "Select a project folder to enable transcription")
+        }
+        
+        let validation = folderAccessManager.validatePythonPaths(
+            pythonPath: settingsManager.pythonPath,
+            scriptPath: settingsManager.scriptPath
+        )
+        
+        if validation.pythonExists && validation.scriptExists {
+            return ("checkmark.circle.fill", .green, "Project folder configured with valid Python executable and server script")
+        } else {
+            let issues = [
+                validation.pythonExists ? nil : "Python executable not found",
+                validation.scriptExists ? nil : "Server script not found"
+            ].compactMap { $0 }.joined(separator: ", ")
+            return ("xmark.circle.fill", .red, "Configuration issues found: \(issues)")
         }
     }
 }

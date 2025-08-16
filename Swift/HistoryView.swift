@@ -1,24 +1,40 @@
 import SwiftUI
 
 struct HistoryView: View {
-    @StateObject private var historyManager = HistoryManager()
+    @StateObject private var historyManager = HistoryManager.shared
     @State private var showingClearAlert = false
+    
+    var onBack: (() -> Void)?
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with back button
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
+                Button(action: {
+                    onBack?()
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Back")
+                            .font(.body)
+                    }
+                    .foregroundColor(.blue)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Spacer()
+                
+                VStack(alignment: .center, spacing: 2) {
                     Text("Transcription History")
                         .font(.title2)
                         .fontWeight(.semibold)
                     
-                    Text("Last \(historyManager.transcriptions.count) transcriptions")
+                    Text("Last \(historyManager.transcriptions.count) transcription\(historyManager.transcriptions.count == 1 ? "" : "s")")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity)
                 
                 Button(action: {
                     showingClearAlert = true

@@ -57,15 +57,11 @@ class SettingsManager: ObservableObject {
     
     // MARK: - Initialization
     init() {
-        // Simple: try bundle first, fallback to documents for user customization
-        if let bundleURL = Bundle.main.url(forResource: "settings", withExtension: "yaml") {
-            configFileURL = bundleURL
-        } else {
-            // Fallback to documents directory for user customization
-            configFileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-                .first!.appendingPathComponent("speech-to-text-settings.yaml")
-        }
+        // Always use documents directory for user customization
+        configFileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+            .first!.appendingPathComponent("speech-to-text-settings.yaml")
         
+        // Try to load from bundle first, then from documents
         loadSettings()
     }
     
@@ -73,14 +69,30 @@ class SettingsManager: ObservableObject {
     func loadSettings() {
         logger.log("Loading settings from: \(configFileURL.path)", level: .debug)
         
-        do {
-            let data = try Data(contentsOf: configFileURL)
-            if let yamlString = String(data: data, encoding: .utf8) {
-                parseYAMLSettings(yamlString)
+        // First try to load from bundle (default settings)
+        if let bundleURL = Bundle.main.url(forResource: "settings", withExtension: "yaml") {
+            do {
+                let data = try Data(contentsOf: bundleURL)
+                if let yamlString = String(data: data, encoding: .utf8) {
+                    parseYAMLSettings(yamlString)
+                    logger.log("Loaded default settings from bundle", level: .debug)
+                }
+            } catch {
+                logger.logError(error, context: "Failed to load bundle settings")
             }
-        } catch {
-            logger.logError(error, context: "Failed to load settings")
-            setDefaultSettings()
+        }
+        
+        // Then try to load user customizations from documents
+        if FileManager.default.fileExists(atPath: configFileURL.path) {
+            do {
+                let data = try Data(contentsOf: configFileURL)
+                if let yamlString = String(data: data, encoding: .utf8) {
+                    parseYAMLSettings(yamlString)
+                    logger.log("Loaded user settings from documents", level: .debug)
+                }
+            } catch {
+                logger.logError(error, context: "Failed to load user settings")
+            }
         }
     }
     
@@ -101,6 +113,25 @@ class SettingsManager: ObservableObject {
         }
     }
     
+    func refreshHotkeyConfiguration() {
+        // This method will be called when hotkey settings change
+        // The HotkeyManager should listen for these changes and re-register the hotkey
+        logger.log("Hotkey configuration refreshed", level: .info)
+    }
+    
+    func refreshWhisperConfiguration() {
+        // This method will be called when Whisper settings change
+        // The server may need to be restarted to pick up new model settings
+        logger.log("Whisper configuration refreshed", level: .info)
+    }
+    
+    func updateHotkey(keyCode: Int, modifiers: [String]) {
+        hotkeyKeyCode = keyCode
+        hotkeyModifiers = modifiers
+        saveSettings()
+        logger.log("Hotkey updated to: \(getHotkeyDisplayString())", level: .info)
+    }
+    
     func getHotkeyDisplayString() -> String {
         var display = ""
         if hotkeyModifiers.contains("command") { display += "⌘" }
@@ -113,13 +144,6 @@ class SettingsManager: ObservableObject {
         display += keyChar
         
         return display
-    }
-    
-    func updateHotkey(keyCode: Int, modifiers: [String]) {
-        hotkeyKeyCode = keyCode
-        hotkeyModifiers = modifiers
-        saveSettings()
-        logger.log("Hotkey updated to: \(getHotkeyDisplayString())", level: .info)
     }
     
     func getServerURL() -> String {

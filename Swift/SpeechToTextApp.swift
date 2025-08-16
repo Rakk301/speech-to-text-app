@@ -232,8 +232,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Reload settings and update components as needed
         settingsManager?.loadSettings()
         
-        // You could reload hotkey manager here if hotkey settings changed
-        // For now, we'll just log the change
+        // Refresh hotkey manager with new configuration
+        hotkeyManager?.refreshHotkeyConfiguration()
+        
+        // Restart server if Whisper settings changed (to pick up new model/language)
+        serverManager?.stopServer()
+        startTranscriptionServer()
     }
     
     // MARK: - Cleanup

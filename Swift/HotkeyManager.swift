@@ -98,6 +98,12 @@ class HotkeyManager {
         cleanup()
     }
     
+    func refreshHotkeyConfiguration() {
+        logger?.log("[HotkeyManager] Refreshing hotkey configuration", level: .info)
+        cleanup()
+        setupHotkey()
+    }
+    
     // MARK: - Private Methods
     private func setupHotkey() {
         do {

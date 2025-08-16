@@ -30,6 +30,7 @@ struct TranscriptionEntry: Codable, Identifiable {
 }
 
 class HistoryManager: ObservableObject {
+    static let shared = HistoryManager()
     
     // MARK: - Published Properties
     @Published var transcriptions: [TranscriptionEntry] = []

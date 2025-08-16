@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 struct MenuBarView: View {
-    @StateObject private var historyManager = HistoryManager()
+    @StateObject private var historyManager = HistoryManager.shared
     @StateObject private var notificationManager = NotificationManager()
     @State private var showingSettings = false
     @State private var showingHistory = false
@@ -21,8 +21,10 @@ struct MenuBarView: View {
                     Button(action: {
                         if isRecording {
                             onStopRecording?()
+                            isRecording = false
                         } else {
                             onStartRecording?()
+                            isRecording = true
                         }
                     }) {
                         HStack(spacing: 8) {
@@ -32,6 +34,7 @@ struct MenuBarView: View {
                             
                             Text(isRecording ? "Stop Recording" : "Start Recording")
                                 .font(.headline)
+                                .foregroundColor(isRecording ? .red : .primary)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -40,8 +43,10 @@ struct MenuBarView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color(NSColor.controlBackgroundColor))
+                            .opacity(isRecording ? 0.8 : 1.0)
                     )
                     .help(isRecording ? "Stop recording (or use hotkey)" : "Start recording (or use hotkey)")
+                    .animation(.easeInOut(duration: 0.2), value: isRecording)
                 }
                 
                 // Status indicator
@@ -77,21 +82,9 @@ struct MenuBarView: View {
                 MenuItemView(
                     icon: "clock.arrow.circlepath",
                     title: "History",
-                    subtitle: "\(historyManager.transcriptions.count) recent transcriptions"
+                    subtitle: "\(historyManager.transcriptions.count) recent transcription\(historyManager.transcriptions.count == 1 ? "" : "s")"
                 ) {
                     showingHistory = true
-                }
-                
-                Divider()
-                    .padding(.leading, 44)
-                
-                // Test notification
-                MenuItemView(
-                    icon: "speaker.wave.3.fill",
-                    title: "Test Notification",
-                    subtitle: "Play success sound"
-                ) {
-                    notificationManager.showTranscriptionSuccess()
                 }
                 
                 Divider()
@@ -102,7 +95,8 @@ struct MenuBarView: View {
                     icon: "power",
                     title: "Quit",
                     subtitle: "Exit application",
-                    destructive: true
+                    destructive: true,
+                    showArrow: false
                 ) {
                     NSApplication.shared.terminate(nil)
                 }
@@ -111,10 +105,14 @@ struct MenuBarView: View {
         .frame(width: 280)
         .background(Color(NSColor.windowBackgroundColor))
         .sheet(isPresented: $showingSettings) {
-            SettingsView(onSettingsChanged: onSettingsChanged)
+            SettingsView(onSettingsChanged: onSettingsChanged, onBack: {
+                showingSettings = false
+            })
         }
         .sheet(isPresented: $showingHistory) {
-            HistoryView()
+            HistoryView(onBack: {
+                showingHistory = false
+            })
         }
     }
     
@@ -133,6 +131,7 @@ struct MenuItemView: View {
     let subtitle: String
     var destructive: Bool = false
     let action: () -> Void
+    var showArrow: Bool = true
     
     @State private var isHovered = false
     
@@ -160,10 +159,12 @@ struct MenuItemView: View {
                 Spacer()
                 
                 // Arrow indicator
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .opacity(isHovered ? 1.0 : 0.6)
+                if showArrow {
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .opacity(isHovered ? 1.0 : 0.6)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
