@@ -57,6 +57,40 @@ class FolderAccessManager: ObservableObject {
         )
     }
     
+    func validateProjectStructure() -> (isValid: Bool, missingFiles: [String]) {
+        guard let projectURL = getProjectFolderURL() else {
+            return (false, ["Project folder not accessible"])
+        }
+        
+        let requiredFiles = [
+            "Python/transcription_server.py",
+            "Config/settings.yaml"
+        ]
+        
+        let missingFiles = requiredFiles.filter { path in
+            !FileManager.default.fileExists(atPath: projectURL.appendingPathComponent(path).path)
+        }
+        
+        return (missingFiles.isEmpty, missingFiles)
+    }
+    
+    func findPythonInterpreter() -> String? {
+        guard let projectURL = getProjectFolderURL() else { return nil }
+        
+        let commonPaths = [
+            "Python/.venv/bin/python3",
+            ".venv/bin/python3",
+            "venv/bin/python3",
+            "Python/venv/bin/python3"
+        ]
+        
+        return commonPaths.first { path in
+            let fullPath = projectURL.appendingPathComponent(path).path
+            return FileManager.default.fileExists(atPath: fullPath) &&
+                   FileManager.default.isExecutableFile(atPath: fullPath)
+        }
+    }
+    
     func revokeAccess() {
         UserDefaults.standard.removeObject(forKey: bookmarkKey)
         hasProjectFolderAccess = false

@@ -9,12 +9,12 @@ struct SpeechToTextApp: App {
     var body: some Scene {
         // Menu bar app
         Settings {
-            SettingsView()
+            EmptyView()
         }
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     
     // MARK: - Properties
     private var statusItem: NSStatusItem?
@@ -35,6 +35,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     // MARK: - App Lifecycle
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Configure as menu bar app - hide from dock and cmd+tab
+        NSApp.setActivationPolicy(.accessory)
+        
         setupComponents()
         setupMenuBar()
         startTranscriptionServer()
@@ -117,9 +120,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         popover = NSPopover()
-        popover?.contentSize = NSSize(width: 280, height: 400)
-        popover?.behavior = .transient
+        popover?.contentSize = NSSize(width: 280, height: 450)
+        popover?.behavior = .transient  // Auto-dismisses when losing focus
+        popover?.animates = true
         popover?.contentViewController = NSHostingController(rootView: menuBarView)
+        
+        // Set up popover delegate for additional menu-bar behavior
+        popover?.delegate = self
         
         logger?.log("MenuBarView setup complete", level: .debug)
     }
@@ -207,15 +214,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         historyManager?.addTranscription(text, audioFileName: audioFileName)
         menuBarView?.addTranscription(text, audioFileName: audioFileName)
         
-        // Paste the transcribed text at the cursor
+        // Paste the transcribed text at cursor
         pasteManager?.pasteText(text) { [weak self] success in
             DispatchQueue.main.async {
                 if success {
-                    self?.logger?.log("Text pasted successfully", level: .info)
+                    self?.logger?.log("Text pasted at cursor successfully", level: .info)
                     self?.notificationManager?.showTranscriptionSuccess()
                 } else {
-                    self?.logger?.log("Failed to paste text", level: .error)
-                    self?.notificationManager?.showTranscriptionError("Failed to paste text")
+                    self?.logger?.log("Failed to paste text at cursor", level: .error)
+                    self?.notificationManager?.showTranscriptionError("Failed to paste text at cursor")
                 }
             }
         }
@@ -239,7 +246,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         serverManager?.stopServer()
         startTranscriptionServer()
     }
-    
+        
     // MARK: - Cleanup
     private func cleanup() {
         if isRecording {

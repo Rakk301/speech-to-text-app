@@ -1,11 +1,16 @@
 import SwiftUI
 import AppKit
 
+enum MenuView {
+    case main
+    case settings
+    case history
+}
+
 struct MenuBarView: View {
     @StateObject private var historyManager = HistoryManager.shared
     @StateObject private var notificationManager = NotificationManager()
-    @State private var showingSettings = false
-    @State private var showingHistory = false
+    @State private var currentView: MenuView = .main
     @State private var isRecording = false
     
     var onStartRecording: (() -> Void)?
@@ -13,12 +18,13 @@ struct MenuBarView: View {
     var onSettingsChanged: (() -> Void)?
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Quick actions section
-            VStack(spacing: 8) {
-                // Recording control
-                HStack {
-                    Button(action: {
+        Group {
+            switch currentView {
+            case .main:
+                MainMenuView(
+                    isRecording: isRecording,
+                    historyCount: historyManager.transcriptions.count,
+                    onStartRecording: {
                         if isRecording {
                             onStopRecording?()
                             isRecording = false
@@ -26,7 +32,51 @@ struct MenuBarView: View {
                             onStartRecording?()
                             isRecording = true
                         }
-                    }) {
+                    },
+                    onShowSettings: { currentView = .settings },
+                    onShowHistory: { currentView = .history },
+                    onQuit: { NSApplication.shared.terminate(nil) }
+                )
+            case .settings:
+                NavigationSettingsView(
+                    onBack: { currentView = .main },
+                    onSettingsChanged: onSettingsChanged
+                )
+            case .history:
+                NavigationHistoryView(
+                    onBack: { currentView = .main }
+                )
+            }
+        }
+        .frame(width: 280)
+        .animation(.easeInOut(duration: 0.2), value: currentView)
+    }
+    
+    func updateRecordingState(_ recording: Bool) {
+        isRecording = recording
+    }
+    
+    func addTranscription(_ text: String, audioFileName: String? = nil) {
+        historyManager.addTranscription(text, audioFileName: audioFileName)
+    }
+}
+
+// MARK: - Main Menu View
+struct MainMenuView: View {
+    let isRecording: Bool
+    let historyCount: Int
+    let onStartRecording: () -> Void
+    let onShowSettings: () -> Void
+    let onShowHistory: () -> Void
+    let onQuit: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Quick actions section
+            VStack(spacing: 8) {
+                // Recording control
+                HStack {
+                    Button(action: onStartRecording) {
                         HStack(spacing: 8) {
                             Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
                                 .font(.title2)
@@ -72,7 +122,7 @@ struct MenuBarView: View {
                     title: "Settings",
                     subtitle: "Configure models and hotkeys"
                 ) {
-                    showingSettings = true
+                    onShowSettings()
                 }
                 
                 Divider()
@@ -82,9 +132,9 @@ struct MenuBarView: View {
                 MenuItemView(
                     icon: "clock.arrow.circlepath",
                     title: "History",
-                    subtitle: "\(historyManager.transcriptions.count) recent transcription\(historyManager.transcriptions.count == 1 ? "" : "s")"
+                    subtitle: "\(historyCount) recent transcription\(historyCount == 1 ? "" : "s")"
                 ) {
-                    showingHistory = true
+                    onShowHistory()
                 }
                 
                 Divider()
@@ -98,30 +148,253 @@ struct MenuBarView: View {
                     destructive: true,
                     showArrow: false
                 ) {
-                    NSApplication.shared.terminate(nil)
+                    onQuit()
                 }
             }
         }
-        .frame(width: 280)
         .background(Color(NSColor.windowBackgroundColor))
-        .sheet(isPresented: $showingSettings) {
-            SettingsView(onSettingsChanged: onSettingsChanged, onBack: {
-                showingSettings = false
-            })
+    }
+}
+
+// MARK: - Navigation Settings View
+struct NavigationSettingsView: View {
+    let onBack: () -> Void
+    let onSettingsChanged: (() -> Void)?
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with back button
+            HStack {
+                Button(action: onBack) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Back")
+                            .font(.body)
+                    }
+                    .foregroundColor(.blue)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Spacer()
+                
+                Text("Settings")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(NSColor.controlBackgroundColor))
+            
+            Divider()
+            
+            // Settings content (compact version)
+            ScrollView {
+                CompactSettingsView(
+                    onSettingsChanged: onSettingsChanged
+                )
+                .padding()
+            }
         }
-        .sheet(isPresented: $showingHistory) {
-            HistoryView(onBack: {
-                showingHistory = false
-            })
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+}
+
+// MARK: - Compact Settings View
+struct CompactSettingsView: View {
+    @StateObject private var settingsManager = SettingsManager()
+    @StateObject private var permissionManager = PermissionManager()
+    @State private var isRecordingHotkey = false
+    
+    let onSettingsChanged: (() -> Void)?
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Permissions Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Permissions")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                VStack(spacing: 6) {
+                    PermissionRow(
+                        icon: "mic.fill",
+                        title: "Microphone",
+                        status: permissionManager.microphonePermissionStatus,
+                        action: { 
+                            Task {
+                                await permissionManager.requestMicrophonePermission()
+                            }
+                        }
+                    )
+                    
+                    PermissionRow(
+                        icon: "accessibility",
+                        title: "Accessibility",
+                        status: permissionManager.accessibilityPermissionStatus,
+                        action: { permissionManager.requestAccessibilityPermission() }
+                    )
+                    
+
+                }
+            }
+            
+            Divider()
+            
+            // Hotkey Configuration
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Global Hotkey")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                HStack {
+                    Text("Current:")
+                        .foregroundColor(.secondary)
+                    
+                    Text(settingsManager.getHotkeyDisplayString())
+                        .font(.system(.body, design: .monospaced))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(NSColor.controlBackgroundColor))
+                        .cornerRadius(4)
+                    
+                    Spacer()
+                    
+                    Button(isRecordingHotkey ? "Press keys..." : "Change") {
+                        // Hotkey recording logic would go here
+                        isRecordingHotkey.toggle()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isRecordingHotkey)
+                }
+            }
+            
+            Divider()
+            
+            // Quick Actions
+            VStack(spacing: 8) {
+                Button("Open Full Settings") {
+                    // Open the full settings window
+                    let settingsView = SettingsView(onSettingsChanged: onSettingsChanged)
+                    let hostingController = NSHostingController(rootView: settingsView)
+                    
+                    let window = NSWindow(
+                        contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
+                        styleMask: [.titled, .closable, .resizable],
+                        backing: .buffered,
+                        defer: false
+                    )
+                    window.title = "Settings"
+                    window.contentViewController = hostingController
+                    window.center()
+                    window.makeKeyAndOrderFront(nil)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+}
+
+// MARK: - Permission Row View
+struct PermissionRow: View {
+    let icon: String
+    let title: String
+    let status: PermissionManager.PermissionStatus
+    let action: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.blue)
+                .frame(width: 16)
+            
+            Text(title)
+                .font(.body)
+            
+            Spacer()
+            
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 8, height: 8)
+                
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            if status != .authorized {
+                Button("Grant") {
+                    action()
+                }
+                .buttonStyle(.borderless)
+                .font(.caption)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .cornerRadius(6)
+    }
+    
+    private var statusColor: Color {
+        switch status {
+        case .authorized: return .green
+        case .denied, .restricted: return .red
+        case .notDetermined: return .orange
         }
     }
     
-    func updateRecordingState(_ recording: Bool) {
-        isRecording = recording
+    private var statusText: String {
+        switch status {
+        case .authorized: return "Granted"
+        case .denied: return "Denied"
+        case .restricted: return "Restricted"
+        case .notDetermined: return "Not Requested"
+        }
     }
+}
+
+// MARK: - Navigation History View
+struct NavigationHistoryView: View {
+    let onBack: () -> Void
     
-    func addTranscription(_ text: String, audioFileName: String? = nil) {
-        historyManager.addTranscription(text, audioFileName: audioFileName)
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header with back button
+            HStack {
+                Button(action: onBack) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Back")
+                            .font(.body)
+                    }
+                    .foregroundColor(.blue)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Spacer()
+                
+                Text("History")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(NSColor.controlBackgroundColor))
+            
+            Divider()
+            
+            // History content
+            HistoryView(onBack: onBack)
+        }
+        .background(Color(NSColor.windowBackgroundColor))
     }
 }
 
