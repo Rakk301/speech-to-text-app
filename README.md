@@ -23,7 +23,7 @@ speech-to-text-app/
 │   ├── speech-to-text-app/          # Swift application components
 │   │   ├── SpeechToTextApp.swift    # Main SwiftUI app entry point and coordination
 │   │   ├── SettingsView.swift       # SwiftUI settings interface
-│   │   ├── NotificationView.swift   # SwiftUI notification and result views
+
 │   │   ├── AudioRecorder.swift      # AVAudioEngine wrapper for microphone capture
 │   │   ├── HotkeyManager.swift      # Global hotkey handling and registration
 │   │   ├── PasteManager.swift       # Clipboard and paste operations
@@ -111,7 +111,7 @@ The app follows a component-based architecture where each Swift file has a singl
 - **PythonBridge** - Executes Python scripts for ML processing via subprocess communication
 - **Logger** - Provides timestamped logging for debugging and user feedback
 - **SettingsView** - Modern SwiftUI interface for app configuration
-- **NotificationView** - SwiftUI components for status notifications and result display
+
 
 ### Python Components
 - **transcribe.py** - Main entry point that orchestrates the entire transcription pipeline

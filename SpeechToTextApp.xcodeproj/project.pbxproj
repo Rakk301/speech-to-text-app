@@ -8,12 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000968732E24DD7C000173E2 /* HotkeyManager.swift */; };
+		0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0022F3142E53036500C45DA7 /* PermissionManager.swift */; };
 		00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */; };
 		00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */; };
 		00AE3B782E42D5EB00CD52A8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B752E42D5EB00CD52A8 /* SettingsView.swift */; };
 		00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */; };
 		00AE3B7A2E42D5EB00CD52A8 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B702E42D5EB00CD52A8 /* HistoryView.swift */; };
-		00AE3B7B2E42D5EB00CD52A8 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B732E42D5EB00CD52A8 /* NotificationView.swift */; };
 		00AE3B7C2E42D5EB00CD52A8 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B712E42D5EB00CD52A8 /* MenuBarView.swift */; };
 		00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */; };
 		00AE3B802E42DC0200CD52A8 /* ServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */; };
@@ -26,11 +26,12 @@
 
 /* Begin PBXFileReference section */
 		000968732E24DD7C000173E2 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyManager.swift; path = Swift/HotkeyManager.swift; sourceTree = "<group>"; };
+		0022F3142E53036500C45DA7 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PermissionManager.swift; path = Swift/PermissionManager.swift; sourceTree = "<group>"; };
+		0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SpeechToTextApp-Info.plist"; sourceTree = "<group>"; };
 		00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = Swift/HistoryManager.swift; sourceTree = "<group>"; };
 		00AE3B702E42D5EB00CD52A8 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryView.swift; path = Swift/HistoryView.swift; sourceTree = "<group>"; };
 		00AE3B712E42D5EB00CD52A8 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Swift/MenuBarView.swift; sourceTree = "<group>"; };
 		00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = Swift/NotificationManager.swift; sourceTree = "<group>"; };
-		00AE3B732E42D5EB00CD52A8 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationView.swift; path = Swift/NotificationView.swift; sourceTree = "<group>"; };
 		00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsManager.swift; path = Swift/SettingsManager.swift; sourceTree = "<group>"; };
 		00AE3B752E42D5EB00CD52A8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Swift/SettingsView.swift; sourceTree = "<group>"; };
 		00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ServerManager.swift; path = Swift/ServerManager.swift; sourceTree = "<group>"; };
@@ -50,6 +51,12 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
+		00C81A252E5421B600DFF7A9 /* Components */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Components;
+			path = Swift/Components;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,14 +73,16 @@
 		00EA51522E24C05900BE5FC7 = {
 			isa = PBXGroup;
 			children = (
+				00C81A252E5421B600DFF7A9 /* Components */,
+				0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */,
 				00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */,
 				00AE3B702E42D5EB00CD52A8 /* HistoryView.swift */,
 				00AE3B712E42D5EB00CD52A8 /* MenuBarView.swift */,
 				00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */,
-				00AE3B732E42D5EB00CD52A8 /* NotificationView.swift */,
 				00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */,
 				00B026012E42E198009C7745 /* Config */,
 				00AE3B752E42D5EB00CD52A8 /* SettingsView.swift */,
+				0022F3142E53036500C45DA7 /* PermissionManager.swift */,
 				00EA51712E24D1F100BE5FC7 /* PasteManager.swift */,
 				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
 				00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */,
@@ -112,6 +121,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				00B026012E42E198009C7745 /* Config */,
+				00C81A252E5421B600DFF7A9 /* Components */,
 			);
 			name = SpeechToTextApp;
 			packageProductDependencies = (
@@ -176,12 +186,12 @@
 				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,
 				000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */,
 				00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */,
+				0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */,
 				00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */,
 				00AE3B782E42D5EB00CD52A8 /* SettingsView.swift in Sources */,
 				00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */,
 				00B091662E42E642009C7745 /* FolderAccessManager.swift in Sources */,
 				00AE3B7A2E42D5EB00CD52A8 /* HistoryView.swift in Sources */,
-				00AE3B7B2E42D5EB00CD52A8 /* NotificationView.swift in Sources */,
 				00AE3B7C2E42D5EB00CD52A8 /* MenuBarView.swift in Sources */,
 				00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */,
 				00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */,
@@ -312,7 +322,6 @@
 		00EA51682E24C05A00BE5FC7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = SpeechToTextApp.entitlements;
@@ -323,8 +332,10 @@
 				DEVELOPMENT_TEAM = 2JA378N26R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SpeechToTextApp-Info.plist";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to transcribe your speech.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -351,7 +362,6 @@
 		00EA51692E24C05A00BE5FC7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = SpeechToTextApp.entitlements;
@@ -362,8 +372,10 @@
 				DEVELOPMENT_TEAM = 2JA378N26R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SpeechToTextApp-Info.plist";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "$(MICROPHONE_USAGE_DESCRIPTION)";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to transcribe your speech.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
