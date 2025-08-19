@@ -3,17 +3,17 @@ import ApplicationServices
 
 enum PasteManagerError: Error, LocalizedError {
     case pasteboardFailed
-    case cursorPositionFailed
     case accessibilityPermissionDenied
+    case pasteOperationFailed
     
     var errorDescription: String? {
         switch self {
         case .pasteboardFailed:
             return "Failed to access pasteboard"
-        case .cursorPositionFailed:
-            return "Failed to get cursor position"
         case .accessibilityPermissionDenied:
-            return "Accessibility permission required for cursor positioning"
+            return "Accessibility permission required for paste-at-cursor"
+        case .pasteOperationFailed:
+            return "Failed to paste text at cursor"
         }
     }
 }
@@ -27,26 +27,38 @@ class PasteManager {
     
     // MARK: - Public Methods
     func pasteText(_ text: String, completion: @escaping (Bool) -> Void) {
-        // Step 1: Save original clipboard content
+        // Check accessibility permissions first
+        guard checkAccessibilityPermissions() else {
+            logger.log("[PasteManager] Accessibility permissions not granted", level: .warning)
+            completion(false)
+            return
+        }
+        
+        // Save original clipboard content
         saveOriginalClipboard()
         
-        // Step 2: Try cursor positioning (with accessibility)
-        if pasteAtCursorPosition(text) {
-            restoreOriginalClipboard()
-            completion(true)
+        // Copy text to clipboard
+        guard copyToClipboard(text) else {
+            logger.log("[PasteManager] Failed to copy text to clipboard", level: .error)
+            completion(false)
             return
         }
         
-        // Step 3: Fallback to clipboard paste
-        if pasteToClipboard(text) {
-            restoreOriginalClipboard()
-            completion(true)
-            return
+        // Send Cmd+V using CGEvent to paste at cursor
+        let success = simulatePasteKeyEvent()
+        
+        // Restore original clipboard after a brief delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.restoreOriginalClipboard()
         }
         
-        // Step 4: Restore clipboard even if paste failed
-        restoreOriginalClipboard()
-        completion(false)
+        if success {
+            logger.log("[PasteManager] Text pasted at cursor successfully", level: .info)
+        } else {
+            logger.log("[PasteManager] Failed to paste text at cursor", level: .error)
+        }
+        
+        completion(success)
     }
     
     // MARK: - Private Methods
@@ -64,24 +76,7 @@ class PasteManager {
         originalClipboardContent = nil
     }
     
-    private func pasteAtCursorPosition(_ text: String) -> Bool {
-        // Check accessibility permissions
-        guard checkAccessibilityPermissions() else {
-            logger.log("[PasteManager] Accessibility permissions not granted", level: .warning)
-            return false
-        }
-        
-        // Get current cursor position
-        guard let cursorPosition = getCursorPosition() else {
-            logger.log("[PasteManager] Failed to get cursor position", level: .warning)
-            return false
-        }
-        
-        // Type the text at cursor position
-        return typeTextAtPosition(text, position: cursorPosition)
-    }
-    
-    private func pasteToClipboard(_ text: String) -> Bool {
+    private func copyToClipboard(_ text: String) -> Bool {
         // Clear existing content
         pasteboard.clearContents()
         
@@ -92,68 +87,45 @@ class PasteManager {
         }
         
         logger.log("[PasteManager] Text copied to clipboard successfully", level: .info)
-        
-        // Simulate Cmd+V to paste
-        return simulatePasteShortcut()
+        return true
     }
     
     private func checkAccessibilityPermissions() -> Bool {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): false]
-        return AXIsProcessTrustedWithOptions(options as CFDictionary)
+        return AXIsProcessTrusted()
     }
     
-    private func getCursorPosition() -> CGPoint? {
-        // Get the current mouse position as a fallback
-        // In a real implementation, you'd use accessibility APIs to get the actual text cursor position
-        let mouseLocation = NSEvent.mouseLocation
-        return CGPoint(x: mouseLocation.x, y: mouseLocation.y)
-    }
-    
-    private func typeTextAtPosition(_ text: String, position: CGPoint) -> Bool {
-        // This is a simplified implementation
-        // In a real app, you'd use accessibility APIs to type at the specific position
-        
-        // For now, we'll use the system-wide pasteboard and simulate typing
-        return simulateTyping(text)
-    }
-    
-    private func simulateTyping(_ text: String) -> Bool {
-        // Use AppleScript to type the text
-        let script = """
-        tell application "System Events"
-            keystroke "\(text)"
-        end tell
-        """
-        
-        let appleScript = NSAppleScript(source: script)
-        var error: NSDictionary?
-        appleScript?.executeAndReturnError(&error)
-        
-        if error != nil {
-            logger.log("[PasteManager] Failed to simulate typing: \(error?.description ?? "unknown error")", level: .error)
+    private func simulatePasteKeyEvent() -> Bool {
+        // Create Cmd+V key event
+        guard let source = CGEventSource(stateID: .combinedSessionState) else {
+            logger.log("[PasteManager] Failed to create CGEventSource", level: .error)
+            return false
         }
         
-        return error == nil
-    }
-
-    
-    
-    private func simulatePasteShortcut() -> Bool {
-        // Use AppleScript to simulate Cmd+V
-        let script = """
-        tell application "System Events"
-            key code 9 using command down
-        end tell
-        """
-        
-        let appleScript = NSAppleScript(source: script)
-        var error: NSDictionary?
-        appleScript?.executeAndReturnError(&error)
-        
-        if error != nil {
-            logger.log("[PasteManager] Failed to simulate paste shortcut: \(error?.description ?? "unknown error")", level: .error)
+        // Create key down event for 'V' key (keycode 9) with Command modifier
+        guard let keyDownEvent = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true) else {
+            logger.log("[PasteManager] Failed to create key down event", level: .error)
+            return false
         }
         
-        return error == nil
+        // Create key up event for 'V' key
+        guard let keyUpEvent = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false) else {
+            logger.log("[PasteManager] Failed to create key up event", level: .error)
+            return false
+        }
+        
+        // Set Command modifier flag
+        keyDownEvent.flags = .maskCommand
+        keyUpEvent.flags = .maskCommand
+        
+        // Post the events
+        keyDownEvent.post(tap: .cgAnnotatedSessionEventTap)
+        
+        // Small delay between key down and key up
+        usleep(10000) // 10ms delay
+        
+        keyUpEvent.post(tap: .cgAnnotatedSessionEventTap)
+        
+        logger.log("[PasteManager] Sent Cmd+V key events", level: .debug)
+        return true
     }
 } 
