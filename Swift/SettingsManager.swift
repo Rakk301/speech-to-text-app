@@ -160,6 +160,21 @@ class SettingsManager: ObservableObject {
         return scriptPath
     }
     
+    func languageDisplayName(_ code: String) -> String {
+        switch code {
+        case "en": return "English"
+        case "es": return "Spanish"
+        case "fr": return "French"
+        case "de": return "German"
+        case "it": return "Italian"
+        case "pt": return "Portuguese"
+        case "ru": return "Russian"
+        case "ja": return "Japanese"
+        case "zh": return "Chinese"
+        default: return code.capitalized
+        }
+    }
+    
     // MARK: - Private Methods
     private func parseYAMLSettings(_ yamlString: String) {
         let lines = yamlString.components(separatedBy: .newlines)

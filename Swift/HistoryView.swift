@@ -4,20 +4,18 @@ struct HistoryView: View {
     @StateObject private var historyManager = HistoryManager.shared
     @State private var showingClearAlert = false
     
-    var onBack: (() -> Void)?
+    let onBack: (() -> Void)?
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 16) {
             // Header with back button
             HStack {
-                Button(action: {
-                    onBack?()
-                }) {
+                Button(action: { onBack?() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: 12, weight: .medium))
                         Text("Back")
-                            .font(.body)
+                            .font(.system(size: 13, weight: .medium))
                     }
                     .foregroundColor(.blue)
                 }
@@ -25,64 +23,79 @@ struct HistoryView: View {
                 
                 Spacer()
                 
-                VStack(alignment: .center, spacing: 2) {
+                Text("History")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            
+            Divider()
+            
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Transcription History")
-                        .font(.title2)
+                        .font(.headline)
                         .fontWeight(.semibold)
                     
                     Text("Last \(historyManager.transcriptions.count) transcription\(historyManager.transcriptions.count == 1 ? "" : "s")")
-                        .font(.caption)
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                 }
-                .frame(maxWidth: .infinity)
+                
+                Spacer()
                 
                 Button(action: {
                     showingClearAlert = true
                 }) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
+                        .font(.system(size: 14))
                 }
                 .buttonStyle(PlainButtonStyle())
                 .help("Clear History")
                 .disabled(historyManager.transcriptions.isEmpty)
             }
-            .padding()
-            
-            Divider()
+            .padding(.horizontal, 20)
             
             // Content
             if historyManager.transcriptions.isEmpty {
                 // Empty state
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 40))
+                        .font(.system(size: 32))
                         .foregroundColor(.secondary)
                     
                     Text("No transcriptions yet")
-                        .font(.headline)
+                        .font(.system(size: 16))
                         .foregroundColor(.secondary)
                     
                     Text("Start recording to see your transcription history here")
-                        .font(.subheadline)
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
             } else {
                 // History list
                 ScrollView {
                     LazyVStack(spacing: 8) {
-                        ForEach(historyManager.transcriptions) { entry in
+                        ForEach(historyManager.transcriptions.prefix(10)) { entry in
                             HistoryRowView(entry: entry) {
                                 historyManager.copyToClipboard(entry)
                             }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 20)
                 }
+                .frame(maxHeight: 300)
             }
         }
-        .frame(width: 400, height: 300)
+        .frame(maxWidth: .infinity)
         .alert("Clear History", isPresented: $showingClearAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Clear", role: .destructive) {
@@ -98,78 +111,31 @@ struct HistoryRowView: View {
     let entry: TranscriptionEntry
     let onCopy: () -> Void
     
-    @State private var isHovered = false
-    @State private var showingCopyConfirmation = false
-    
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Timestamp
-            VStack(alignment: .leading, spacing: 2) {
-                Text(entry.formattedTimestamp)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Circle()
-                    .fill(Color.blue.opacity(0.6))
-                    .frame(width: 6, height: 6)
-            }
-            .frame(width: 50)
+        HStack(spacing: 10) {
+            Text(entry.text)
+                .font(.system(size: 14))
+                .lineLimit(3)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.leading)
             
-            // Text content
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.text)
-                    .font(.body)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(nil)
-                
-                if let audioFile = entry.audioFileName {
-                    Text("Audio: \(audioFile)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer()
             
-            // Copy button
-            Button(action: {
-                onCopy()
-                showCopyFeedback()
-            }) {
-                Image(systemName: showingCopyConfirmation ? "checkmark" : "doc.on.clipboard")
-                    .foregroundColor(showingCopyConfirmation ? .green : .blue)
+            Button(action: onCopy) {
+                Image(systemName: "doc.on.doc")
                     .font(.system(size: 14))
+                    .foregroundColor(.blue)
             }
             .buttonStyle(PlainButtonStyle())
-            .opacity(isHovered ? 1.0 : 0.6)
-            .animation(.easeInOut(duration: 0.2), value: isHovered)
-            .help("Copy to Clipboard")
+            .help("Copy to clipboard")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.controlBackgroundColor))
-                .opacity(isHovered ? 1.0 : 0.5)
-        )
-        .onHover { hovering in
-            isHovered = hovering
-        }
-        .animation(.easeInOut(duration: 0.2), value: isHovered)
-    }
-    
-    private func showCopyFeedback() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            showingCopyConfirmation = true
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                showingCopyConfirmation = false
-            }
-        }
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .cornerRadius(8)
     }
 }
 
 #Preview {
-    HistoryView()
+    HistoryView(onBack: nil)
 }
