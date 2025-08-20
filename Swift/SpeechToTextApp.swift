@@ -41,6 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         setupComponents()
         setupMenuBar()
         startTranscriptionServer()
+        logger?.log("=== App Setup Complete ===", level: .info)
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -91,8 +92,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             DispatchQueue.main.async {
                 if success {
                     self?.logger?.log("Transcription server started successfully", level: .info)
+                    self?.notificationManager?.showAppInitializationSuccess()
                 } else {
                     self?.logger?.log("Failed to start transcription server", level: .error)
+                    self?.notificationManager?.showAppInitializationError("Failed to start transcription server")
                     // Server errors will be shown via notifications instead of icon changes
                 }
             }
@@ -110,7 +113,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         
         // Setup popover for menu with our custom MenuBarView
         setupPopover()
-        logger?.log("=== App Setup Complete ===", level: .debug)
     }
     
     private func setupPopover() {

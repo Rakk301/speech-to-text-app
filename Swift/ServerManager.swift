@@ -101,19 +101,16 @@ class ServerManager {
         process.standardError = errorPipe
         
         // Monitor output for server startup
-        let expectedServerMessage = "Transcription server started on \(settingsManager.getServerURL())"
+        let expectedServerMessage = "Transcription server started on"
         outputPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if data.count > 0, let outputString = String(data: data, encoding: .utf8) {
                 self?.logger.log("[ServerManager] Server stdout: \(outputString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .debug)
                 
                 // Check if server is ready - look for server start message or listen message
-                if outputString.contains(expectedServerMessage) || 
+                if outputString.contains(expectedServerMessage) ||
                    outputString.contains("Uvicorn running on") ||
                    outputString.contains("Application startup complete") {
-                    DispatchQueue.main.async {
-                        completion(true)
-                    }
                 }
             }
         }
@@ -130,6 +127,7 @@ class ServerManager {
             try process.run()
             serverProcess = process
             logger.log("[ServerManager] Server process started successfully", level: .info)
+            completion(true)
         } catch {
             logger.logError(error, context: "[ServerManager] Failed to start server")
             completion(false)
