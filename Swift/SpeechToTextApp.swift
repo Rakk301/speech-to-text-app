@@ -30,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var folderAccessManager: FolderAccessManager?
     private var menuBarView: MenuBarView?
     private var popover: NSPopover?
+    private var menuBarIconManager: MenuBarIconManager?
     
     private var isRecording = false
     
@@ -93,10 +94,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 if success {
                     self?.logger?.log("Transcription server started successfully", level: .info)
                     self?.notificationManager?.showAppInitializationSuccess()
+                    self?.menuBarIconManager?.playStartupAnimation()
                 } else {
                     self?.logger?.log("Failed to start transcription server", level: .error)
                     self?.notificationManager?.showAppInitializationError("Failed to start transcription server")
-                    // Server errors will be shown via notifications instead of icon changes
+                    self?.menuBarIconManager?.showErrorState()
                 }
             }
         }
@@ -106,10 +108,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem?.button {
-            button.title = "🎤"
+            button.imagePosition = .imageLeft
             button.action = #selector(menuBarClicked)
             button.target = self
         }
+        
+        // Initialize the menu bar icon manager
+        menuBarIconManager = MenuBarIconManager(statusItem: statusItem!)
         
         // Setup popover for menu with our custom MenuBarView
         setupPopover()
@@ -163,11 +168,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             try audioRecorder?.startRecording()
             isRecording = true
             menuBarView?.updateRecordingState(true)
+            
+            // Hide our icon and let Apple's native recording indicator show
+            menuBarIconManager?.setRecordingState()
+            
             notificationManager?.showRecordingStarted()
             logger?.log("Recording started")
         } catch {
             logger?.logError(error, context: "Failed to start recording")
             notificationManager?.showTranscriptionError("Failed to start recording")
+            menuBarIconManager?.showErrorState()
         }
     }
     
@@ -177,6 +187,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         guard let audioFileURL = audioRecorder?.stopRecording() else {
             logger?.log("Failed to get audio file", level: .error)
             notificationManager?.showTranscriptionError("Failed to save audio file")
+            menuBarIconManager?.showErrorState()
             return
         }
         
@@ -184,6 +195,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         menuBarView?.updateRecordingState(false)
         notificationManager?.showRecordingStopped()
         logger?.log("Audio file successfully saved to: \(audioFileURL.path)", level: .debug)
+        menuBarIconManager?.setProcessingState()
         
         // Process the audio file with Python
         processAudioFile(audioFileURL)
@@ -202,14 +214,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                     self?.logger?.logError(error, context: "Transcription failed")
                     self?.logger?.log("Transcription failed with error: \(error.localizedDescription)", level: .error)
                     self?.notificationManager?.showTranscriptionError("Transcription failed: \(error.localizedDescription)")
+                    self?.menuBarIconManager?.showErrorState()
                 }
             }
         }
     }
     
-
     private func handleTranscribedText(_ text: String, audioFileName: String? = nil) {
-        
         logger?.log("Handling transcribed text: \(text)", level: .info)
         
         // Add to history
@@ -222,18 +233,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 if success {
                     self?.logger?.log("Text pasted at cursor successfully", level: .info)
                     self?.notificationManager?.showTranscriptionSuccess()
+                    self?.menuBarIconManager?.showSuccessState()
                 } else {
                     self?.logger?.log("Failed to paste text at cursor", level: .error)
                     self?.notificationManager?.showTranscriptionError("Failed to paste text at cursor")
+                    self?.menuBarIconManager?.showErrorState()
                 }
             }
         }
     }
-    
-    // MARK: - Text Processing
-    
-    // MARK: - UI Updates
-    // Menu bar icon is now static - status shown via MenuBarView popover and notifications
     
     // MARK: - Settings Handler
     private func handleSettingsChanged() {
@@ -259,5 +267,3 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         logger?.log("App terminating")
     }
 }
-
-// No main window preview for a menu bar app

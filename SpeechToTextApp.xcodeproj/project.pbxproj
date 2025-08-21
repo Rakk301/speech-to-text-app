@@ -12,6 +12,7 @@
 		0057411D2E551E0E00392845 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411B2E551E0E00392845 /* MenuBarView.swift */; };
 		0057411E2E551E0E00392845 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411A2E551E0E00392845 /* HistoryView.swift */; };
 		0057411F2E551E0E00392845 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411C2E551E0E00392845 /* SettingsView.swift */; };
+		00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00869A142E56E33600D65D58 /* MenuBarIconManager.swift */; };
 		00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */; };
 		00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */; };
 		00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */; };
@@ -31,6 +32,7 @@
 		0057411A2E551E0E00392845 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryView.swift; path = Swift/HistoryView.swift; sourceTree = "<group>"; };
 		0057411B2E551E0E00392845 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Swift/MenuBarView.swift; sourceTree = "<group>"; };
 		0057411C2E551E0E00392845 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Swift/SettingsView.swift; sourceTree = "<group>"; };
+		00869A142E56E33600D65D58 /* MenuBarIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconManager.swift; path = Swift/MenuBarIconManager.swift; sourceTree = "<group>"; };
 		00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = Swift/HistoryManager.swift; sourceTree = "<group>"; };
 		00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = Swift/NotificationManager.swift; sourceTree = "<group>"; };
 		00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsManager.swift; path = Swift/SettingsManager.swift; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
 				00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */,
 				00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */,
+				00869A142E56E33600D65D58 /* MenuBarIconManager.swift */,
 				000968732E24DD7C000173E2 /* HotkeyManager.swift */,
 				00EA516F2E24D05200BE5FC7 /* Logger.swift */,
 				00EA515C2E24C05900BE5FC7 /* Products */,
@@ -173,6 +176,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */,
+				00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */,
 				00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */,
 				00AE3B802E42DC0200CD52A8 /* ServerManager.swift in Sources */,
 				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,

@@ -124,16 +124,9 @@ struct RecordingControlsSection: View {
                 .animation(.easeInOut(duration: 0.2), value: isRecording)
             }
             
-            // Status indicator
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(isRecording ? Color.red : Color.green)
-                    .frame(width: 8, height: 8)
-                
-                Text(isRecording ? "Recording in progress..." : "Ready to record")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+            Text(isRecording ? "Recording in progress..." : "Ready to record")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
         .padding()
     }
