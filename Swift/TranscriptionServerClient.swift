@@ -30,7 +30,8 @@ class TranscriptionServerClient {
     
     // MARK: - Initialization
     init(settingsManager: SettingsManager? = nil) {
-        self.settingsManager = settingsManager ?? SettingsManager()
+        let folderManager = FolderAccessManager()
+        self.settingsManager = settingsManager ?? SettingsManager(folderAccessManager: folderManager)
     }
     
     // MARK: - Public Methods

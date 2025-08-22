@@ -8,11 +8,61 @@ class ServerManager {
     private let folderAccessManager: FolderAccessManager
     private let logger = Logger()
     private var serverProcess: Process?
+    private var isRestarting = false
     
     // MARK: - Initialization
     init(settingsManager: SettingsManager? = nil, folderAccessManager: FolderAccessManager? = nil) {
-        self.settingsManager = settingsManager ?? SettingsManager()
         self.folderAccessManager = folderAccessManager ?? FolderAccessManager()
+        self.settingsManager = settingsManager ?? SettingsManager(folderAccessManager: self.folderAccessManager)
+        
+        // Listen for settings changes that require server restart
+        setupNotificationObservers()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    // MARK: - Notification Setup
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleServerSettingsChanged),
+            name: NSNotification.Name("ServerSettingsChanged"),
+            object: nil
+        )
+    }
+    
+    @objc private func handleServerSettingsChanged() {
+        logger.log("[ServerManager] Server settings changed, restarting server...", level: .info)
+        restartServerForSettingsChange()
+    }
+    
+    private func restartServerForSettingsChange() {
+        // Prevent multiple simultaneous restarts
+        guard !isRestarting else {
+            logger.log("[ServerManager] Server restart already in progress, skipping...", level: .warning)
+            return
+        }
+        
+        isRestarting = true
+        
+        // Stop current server
+        stopServer()
+        
+        // Wait a moment for cleanup, then restart
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.startServer { success in
+                DispatchQueue.main.async {
+                    self?.isRestarting = false
+                    if success {
+                        self?.logger.log("[ServerManager] Server restarted successfully after settings change", level: .info)
+                    } else {
+                        self?.logger.log("[ServerManager] Failed to restart server after settings change", level: .error)
+                    }
+                }
+            }
+        }
     }
     
     // MARK: - Public Methods

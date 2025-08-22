@@ -32,13 +32,33 @@ class HotkeyManager {
     // MARK: - Initialization
     init() {
         logger = Logger()
-        settingsManager = SettingsManager()
+        let folderManager = FolderAccessManager()
+        settingsManager = SettingsManager(folderAccessManager: folderManager)
         setupLocalHotkey() // Always works
         setupHotkey()      // Global hotkey (if permissions)
+        
+        // Listen for hotkey settings changes
+        setupNotificationObservers()
     }
     
     deinit {
         cleanup()
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    // MARK: - Notification Setup
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleHotkeySettingsChanged),
+            name: NSNotification.Name("HotkeySettingsChanged"),
+            object: nil
+        )
+    }
+    
+    @objc private func handleHotkeySettingsChanged() {
+        logger?.log("[HotkeyManager] Hotkey settings changed, refreshing configuration...", level: .info)
+        refreshHotkeyConfiguration()
     }
     
     // MARK: - Public Methods

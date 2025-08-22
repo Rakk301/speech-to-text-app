@@ -1,21 +1,28 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @StateObject private var settingsManager = SettingsManager()
     @StateObject private var folderAccessManager = FolderAccessManager()
+    @StateObject private var settingsManager: SettingsManager
     @State private var isEnabled = true
     @State private var showNotifications = true
     @State private var isRecordingHotkey = false
+    @State private var localKeyMonitor: Any?
+    @Environment(\.dismiss) private var dismiss
     
     var onSettingsChanged: (() -> Void)?
-    var onBack: (() -> Void)?
+    
+    init() {
+        let folderManager = FolderAccessManager()
+        self._folderAccessManager = StateObject(wrappedValue: folderManager)
+        self._settingsManager = StateObject(wrappedValue: SettingsManager(folderAccessManager: folderManager))
+    }
     
     var body: some View {
         VStack(spacing: 20) {
             // Header with back button
             HStack {
                 Button(action: {
-                    onBack?()
+                    dismiss()
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
@@ -65,10 +72,11 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
-                    .onChange(of: settingsManager.whisperModel) { _ in
-                        settingsManager.saveSettings()
-                        settingsManager.refreshWhisperConfiguration()
-                        onSettingsChanged?()
+                    .onChange(of: settingsManager.whisperModel) { newValue in
+                        let success = settingsManager.updateWhisperModel(newValue)
+                        if success {
+                            onSettingsChanged?()
+                        }
                     }
                     
                     HStack {
@@ -86,10 +94,11 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
-                    .onChange(of: settingsManager.whisperLanguage) { _ in
-                        settingsManager.saveSettings()
-                        settingsManager.refreshWhisperConfiguration()
-                        onSettingsChanged?()
+                    .onChange(of: settingsManager.whisperLanguage) { newValue in
+                        let success = settingsManager.updateWhisperLanguage(newValue)
+                        if success {
+                            onSettingsChanged?()
+                        }
                     }
                     
                     Picker("Task", selection: $settingsManager.whisperTask) {
@@ -99,10 +108,11 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
-                    .onChange(of: settingsManager.whisperTask) { _ in
-                        settingsManager.saveSettings()
-                        settingsManager.refreshWhisperConfiguration()
-                        onSettingsChanged?()
+                    .onChange(of: settingsManager.whisperTask) { newValue in
+                        let success = settingsManager.updateWhisperTask(newValue)
+                        if success {
+                            onSettingsChanged?()
+                        }
                     }
                     
                     HStack {
@@ -115,10 +125,11 @@ struct SettingsView: View {
                             .font(.caption)
                             .frame(width: 30)
                     }
-                    .onChange(of: settingsManager.whisperTemperature) { _ in
-                        settingsManager.saveSettings()
-                        settingsManager.refreshWhisperConfiguration()
-                        onSettingsChanged?()
+                    .onChange(of: settingsManager.whisperTemperature) { newValue in
+                        let success = settingsManager.updateWhisperTemperature(newValue)
+                        if success {
+                            onSettingsChanged?()
+                        }
                     }
                 }
                 
@@ -127,7 +138,11 @@ struct SettingsView: View {
                         Text("Global Hotkey")
                         Spacer()
                         Button(action: {
-                            isRecordingHotkey.toggle()
+                            if isRecordingHotkey {
+                                stopHotkeyRecording()
+                            } else {
+                                startHotkeyRecording()
+                            }
                         }) {
                             Text(isRecordingHotkey ? "Press keys..." : settingsManager.getHotkeyDisplayString())
                                 .foregroundColor(isRecordingHotkey ? .orange : .secondary)
@@ -147,29 +162,6 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundColor(.orange)
                     }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NSEventKeyDown"))) { notification in
-                    guard isRecordingHotkey, let event = notification.object as? NSEvent else { return }
-                    
-                    // Capture the key combination
-                    let keyCode = Int(event.keyCode)
-                    var modifiers: [String] = []
-                    
-                    if event.modifierFlags.contains(.command) { modifiers.append("command") }
-                    if event.modifierFlags.contains(.shift) { modifiers.append("shift") }
-                    if event.modifierFlags.contains(.option) { modifiers.append("option") }
-                    if event.modifierFlags.contains(.control) { modifiers.append("control") }
-                    
-                    // Update settings
-                    settingsManager.updateHotkey(keyCode: keyCode, modifiers: modifiers)
-                    settingsManager.saveSettings()
-                    settingsManager.refreshHotkeyConfiguration()
-                    
-                    // Stop recording
-                    isRecordingHotkey = false
-                    
-                    // Notify parent of settings change
-                    onSettingsChanged?()
                 }
                 
                 Section("App Settings") {
@@ -257,6 +249,50 @@ struct SettingsView: View {
         .padding()
         .onAppear {
             settingsManager.loadSettings()
+        }
+        .onDisappear {
+            stopHotkeyRecording()
+        }
+    }
+    
+    // MARK: - Hotkey Recording Methods
+    private func startHotkeyRecording() {
+        isRecordingHotkey = true
+        
+        // Set up local key monitor for capturing hotkeys
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+            guard isRecordingHotkey else { return event }
+            
+            // Capture the key combination
+            let keyCode = Int(event.keyCode)
+            var modifiers: [String] = []
+            
+            if event.modifierFlags.contains(.command) { modifiers.append("command") }
+            if event.modifierFlags.contains(.shift) { modifiers.append("shift") }
+            if event.modifierFlags.contains(.option) { modifiers.append("option") }
+            if event.modifierFlags.contains(.control) { modifiers.append("control") }
+            
+            // Update settings using the new method
+            let success = settingsManager.updateHotkey(keyCode: keyCode, modifiers: modifiers)
+            if success {
+                // Stop recording
+                stopHotkeyRecording()
+                
+                // Notify parent of settings change
+                onSettingsChanged?()
+            }
+            
+            return nil // Swallow the keystroke
+        }
+    }
+    
+    private func stopHotkeyRecording() {
+        isRecordingHotkey = false
+        
+        // Remove the key monitor
+        if let monitor = localKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            localKeyMonitor = nil
         }
     }
     

@@ -50,10 +50,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger?.log("=== Initializing App Setup ===", level: .debug)
         
         // Initialize managers
-        settingsManager = SettingsManager()
+        folderAccessManager = FolderAccessManager()
+        settingsManager = SettingsManager(folderAccessManager: folderAccessManager)
         historyManager = HistoryManager()
         notificationManager = NotificationManager()
-        folderAccessManager = FolderAccessManager()
         
         // Initialize core components
         audioRecorder = AudioRecorder()

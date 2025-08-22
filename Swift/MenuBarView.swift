@@ -11,6 +11,13 @@ struct MenuBarView: View {
     var onStartRecording: (() -> Void)?
     var onStopRecording: (() -> Void)?
     var onSettingsChanged: (() -> Void)?
+    var onAddTranscription: ((String, String?) -> Void)? // Callback for adding transcriptions
+    
+    // Computed property to safely access transcription count
+    private var transcriptionCountText: String {
+        let count = historyManager.transcriptions.count
+        return "\(count) recent transcription\(count == 1 ? "" : "s")"
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -82,7 +89,7 @@ struct MenuBarView: View {
                 MenuItemView(
                     icon: "clock.arrow.circlepath",
                     title: "History",
-                    subtitle: "\(historyManager.transcriptions.count) recent transcription\(historyManager.transcriptions.count == 1 ? "" : "s")"
+                    subtitle: transcriptionCountText
                 ) {
                     showingHistory = true
                 }
@@ -105,9 +112,11 @@ struct MenuBarView: View {
         .frame(width: 280)
         .background(Color(NSColor.windowBackgroundColor))
         .sheet(isPresented: $showingSettings) {
-            SettingsView(onSettingsChanged: onSettingsChanged, onBack: {
-                showingSettings = false
-            })
+            SettingsView()
+                .onDisappear {
+                    // Handle settings view dismissal
+                    showingSettings = false
+                }
         }
         .sheet(isPresented: $showingHistory) {
             HistoryView(onBack: {
@@ -120,8 +129,9 @@ struct MenuBarView: View {
         isRecording = recording
     }
     
+    // Function to add transcription via callback
     func addTranscription(_ text: String, audioFileName: String? = nil) {
-        historyManager.addTranscription(text, audioFileName: audioFileName)
+        onAddTranscription?(text, audioFileName)
     }
 }
 
