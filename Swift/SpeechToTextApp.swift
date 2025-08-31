@@ -62,7 +62,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         
         // Initialize core components
         audioRecorder = AudioRecorder()
-        hotkeyManager = HotkeyManager()
+        
+        guard let settingsManager = settingsManager,
+              let folderAccessManager = folderAccessManager else {
+            logger?.log("Failed to initialize required managers", level: .error)
+            return
+        }
+        
+        hotkeyManager = HotkeyManager(settingsManager: settingsManager)
         pasteManager = PasteManager()
         transcriptionClient = TranscriptionServerClient(settingsManager: settingsManager)
         serverManager = ServerManager(settingsManager: settingsManager, folderAccessManager: folderAccessManager)

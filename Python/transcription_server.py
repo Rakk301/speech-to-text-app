@@ -133,6 +133,47 @@ class MultiModelTranscriptionServer:
                 {'error': str(e)}, 
                 status=500
             )
+        
+    async def reload_model_handler(self, request):
+        """Reload Whisper model with new configuration without server restart."""
+        try:
+            data = await request.json()
+            
+            # Get new Whisper configuration
+            new_config = {
+                "model": data.get("model", self.config.whisper.get("model", "small")),
+                "language": data.get("language", self.config.whisper.get("language", "en")),
+                "task": data.get("task", self.config.whisper.get("task", "transcribe")),
+                "temperature": data.get("temperature", self.config.whisper.get("temperature", 0.0))
+            }
+            
+            self.logger.info(f"Reloading Whisper model with new config: {new_config}")
+            
+            # Update the config in memory
+            self.config.whisper.update(new_config)
+            
+            # Reload the Whisper provider with new configuration
+            if isinstance(self.stt_provider, WhisperProvider):
+                # Create new WhisperProvider with updated config
+                self.stt_provider = WhisperProvider(new_config)
+                self.logger.info("Whisper model reloaded successfully")
+            else:
+                # If current provider is not Whisper, switch to it
+                self.stt_provider = WhisperProvider(new_config)
+                self.logger.info("Switched to Whisper provider with new configuration")
+            
+            return web.json_response({
+                'message': 'Model reloaded successfully',
+                'config': new_config,
+                'provider': 'whisper'
+            })
+            
+        except Exception as e:
+            self.logger.error(f"Failed to reload model: {e}")
+            return web.json_response(
+                {'error': str(e)}, 
+                status=500
+            )
 
 
 async def create_app(config_path: str) -> web.Application:
@@ -143,6 +184,7 @@ async def create_app(config_path: str) -> web.Application:
     app.router.add_post('/transcribe', server.transcribe_handler)
     app.router.add_get('/providers', server.providers_handler)
     app.router.add_post('/switch_provider', server.switch_provider_handler)
+    app.router.add_post('/reload_model', server.reload_model_handler)
     app.router.add_get('/health', lambda r: web.json_response({'status': 'healthy'}))
     
     return app
@@ -182,6 +224,7 @@ async def main():
     print("  POST /transcribe - Transcribe audio file")
     print("  GET  /providers  - List available providers")
     print("  POST /switch_provider - Switch STT provider")
+    print("  POST /reload_model - Reload Whisper model")
     print("  GET  /health     - Health check")
     print("\n💡 Test with Postman:")
     print("  POST http://localhost:8080/transcribe")

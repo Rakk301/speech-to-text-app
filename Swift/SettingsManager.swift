@@ -1,7 +1,8 @@
 import Foundation
 import SwiftUI
+import Yams
 
-// Configuration models matching settings.yaml structure
+// MARK: - Configuration Models
 struct STTProviderConfig: Codable {
     let provider: String
 }
@@ -11,6 +12,27 @@ struct ServerConfig: Codable {
     var port: Int
     var pythonPath: String
     var scriptPath: String
+    
+    enum CodingKeys: String, CodingKey {
+        case host
+        case port
+        case pythonPath = "python_path"
+        case scriptPath = "script_path"
+    }
+}
+
+struct AudioConfig: Codable {
+    var sampleRate: Int
+    var channels: Int
+    var format: String
+    var chunkDuration: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case sampleRate = "sample_rate"
+        case channels
+        case format
+        case chunkDuration = "chunk_duration"
+    }
 }
 
 struct WhisperConfig: Codable {
@@ -20,18 +42,70 @@ struct WhisperConfig: Codable {
     var temperature: Double
 }
 
+struct LLMConfig: Codable {
+    var baseUrl: String
+    var enabled: Bool
+    var model: String
+    var temperature: Double
+    var maxTokens: Int
+    var prompt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case baseUrl = "base_url"
+        case enabled
+        case model
+        case temperature
+        case maxTokens = "max_tokens"
+        case prompt
+    }
+}
+
 struct HotkeyConfig: Codable {
     var keyCode: Int
     var modifiers: [String]
+    
+    enum CodingKeys: String, CodingKey {
+        case keyCode = "key_code"
+        case modifiers
+    }
+}
+
+struct LoggingConfig: Codable {
+    var enabled: Bool
+    var logFile: String
+    var maxFileSize: String
+    var backupCount: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case enabled
+        case logFile = "log_file"
+        case maxFileSize = "max_file_size"
+        case backupCount = "backup_count"
+    }
 }
 
 struct AppConfig: Codable {
     var stt: STTProviderConfig
     var server: ServerConfig
+    var audio: AudioConfig
     var whisper: WhisperConfig
+    var llm: LLMConfig
     var hotkey: HotkeyConfig
+    var logging: LoggingConfig
 }
 
+// MARK: - Settings Change Notifications
+extension Notification.Name {
+    static let whisperSettingsChanged = Notification.Name("whisperSettingsChanged")
+    static let whisperModelReloaded = Notification.Name("whisperModelReloaded")
+    static let hotkeySettingsChanged = Notification.Name("hotkeySettingsChanged")
+    static let serverSettingsChanged = Notification.Name("serverSettingsChanged")
+    static let audioSettingsChanged = Notification.Name("audioSettingsChanged")
+    static let llmSettingsChanged = Notification.Name("llmSettingsChanged")
+    static let loggingSettingsChanged = Notification.Name("loggingSettingsChanged")
+}
+
+// MARK: - Settings Manager
 class SettingsManager: ObservableObject {
     
     // MARK: - Published Properties
@@ -39,16 +113,36 @@ class SettingsManager: ObservableObject {
     @Published var whisperLanguage: String = "en"
     @Published var whisperTask: String = "transcribe"
     @Published var whisperTemperature: Double = 0.0
+    
     @Published var hotkeyKeyCode: Int = 37  // L key
     @Published var hotkeyModifiers: [String] = ["option"]
+    
     @Published var serverHost: String = "localhost"
     @Published var serverPort: Int = 3001
-    @Published var pythonPath: String = "Python/.venv/bin/python3"  // Relative to project folder
-    @Published var scriptPath: String = "Python/transcription_server.py"  // Relative to project folder
+    @Published var pythonPath: String = "Python/.venv/bin/python3"
+    @Published var scriptPath: String = "Python/transcription_server.py"
+    
+    @Published var audioSampleRate: Int = 16000
+    @Published var audioChannels: Int = 1
+    @Published var audioFormat: String = "wav"
+    @Published var audioChunkDuration: Int = 3
+    
+    @Published var llmBaseUrl: String = "http://localhost:11434"
+    @Published var llmEnabled: Bool = true
+    @Published var llmModel: String = "llama3.1"
+    @Published var llmTemperature: Double = 0.1
+    @Published var llmMaxTokens: Int = 100
+    @Published var llmPrompt: String? = nil
+    
+    @Published var loggingEnabled: Bool = true
+    @Published var loggingLogFile: String = "Logs/transcriptions.log"
+    @Published var loggingMaxFileSize: String = "10MB"
+    @Published var loggingBackupCount: Int = 5
     
     // MARK: - Properties
     private let configFileURL: URL
     private let logger = Logger()
+    private var appConfig: AppConfig?
     
     // Available options
     let availableModels = ["tiny", "base", "small", "medium", "large"]
@@ -57,11 +151,20 @@ class SettingsManager: ObservableObject {
     
     // MARK: - Initialization
     init() {
-        // Always use documents directory for user customization
-        configFileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-            .first!.appendingPathComponent("speech-to-text-settings.yaml")
+         #if DEBUG
+        // Debug/Testing: Use current app directory for easy access
+        let currentDirectory = FileManager.default.currentDirectoryPath
+        configFileURL = URL(fileURLWithPath: currentDirectory).appendingPathComponent("Config/settings.yaml")
+        logger.log("DEBUG MODE: Using config file at: \(configFileURL.path)", level: .debug)
+        #else
+        // Release: Use standard macOS app support directory
+        let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first!.appendingPathComponent("SpeechToTextApp")
+        configFileURL = appSupportURL.appendingPathComponent("settings.yaml")
+        logger.log("RELEASE MODE: Using config file at: \(configFileURL.path)", level: .debug)
+        #endif
         
-        // Try to load from bundle first, then from documents
+        // Load or create settings
         loadSettings()
     }
     
@@ -69,39 +172,47 @@ class SettingsManager: ObservableObject {
     func loadSettings() {
         logger.log("Loading settings from: \(configFileURL.path)", level: .debug)
         
-        // First try to load from bundle (default settings)
-        if let bundleURL = Bundle.main.url(forResource: "settings", withExtension: "yaml") {
-            do {
-                let data = try Data(contentsOf: bundleURL)
-                if let yamlString = String(data: data, encoding: .utf8) {
-                    parseYAMLSettings(yamlString)
-                    logger.log("Loaded default settings from bundle", level: .debug)
-                }
-            } catch {
-                logger.logError(error, context: "Failed to load bundle settings")
-            }
-        }
-        
-        // Then try to load user customizations from documents
+        // Check if settings file exists
         if FileManager.default.fileExists(atPath: configFileURL.path) {
+            // Load existing settings
             do {
                 let data = try Data(contentsOf: configFileURL)
+                logger.log("Settings loaded, size: \(data.count) bytes", level: .debug)
                 if let yamlString = String(data: data, encoding: .utf8) {
-                    parseYAMLSettings(yamlString)
-                    logger.log("Loaded user settings from documents", level: .debug)
+                    try parseYAMLSettings(yamlString)
+                    logger.log("Loaded settings successfully", level: .debug)
+                    logger.log("Whisper model: \(whisperModel)", level: .debug)
+                } else {
+                    logger.log("Failed to convert data to UTF-8 string", level: .error)
+                    createDefaultSettings()
                 }
             } catch {
-                logger.logError(error, context: "Failed to load user settings")
+                logger.logError(error, context: "Failed to load settings")
+                createDefaultSettings()
             }
+        } else {
+            // Create default settings file
+            logger.log("No settings file found, creating defaults", level: .debug)
+            createDefaultSettings()
         }
+    }
+
+    private func createDefaultSettings() {
+        logger.log("Creating default settings file", level: .info)
+        
+        // Set default values
+        setDefaultSettings()
+        
+        // Save to file
+        saveSettings()
     }
     
     func saveSettings() {
         logger.log("Saving settings to: \(configFileURL.path)", level: .debug)
         
-        let yamlContent = generateYAMLContent()
-        
         do {
+            let yamlContent = try generateYAMLContent()
+            
             // Ensure directory exists
             let configDir = configFileURL.deletingLastPathComponent()
             try FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true)
@@ -113,24 +224,113 @@ class SettingsManager: ObservableObject {
         }
     }
     
-    func refreshHotkeyConfiguration() {
-        // This method will be called when hotkey settings change
-        // The HotkeyManager should listen for these changes and re-register the hotkey
-        logger.log("Hotkey configuration refreshed", level: .info)
+    // MARK: - Settings Update Methods with Notifications
+    
+    func updateWhisperSettings(model: String, language: String, task: String, temperature: Double) {
+        let oldModel = whisperModel
+        let oldLanguage = whisperLanguage
+        let oldTask = whisperTask
+        let oldTemperature = whisperTemperature
+        
+        whisperModel = model
+        whisperLanguage = language
+        whisperTask = task
+        whisperTemperature = temperature
+        
+        // Check if any critical settings changed that require model reload
+        if oldModel != model || oldLanguage != language || oldTask != task {
+            NotificationCenter.default.post(name: .whisperSettingsChanged, object: self)
+            logger.log("Whisper settings changed - model reload required", level: .info)
+        }
+        
+        // Persist user changes
+        saveSettings()
     }
     
-    func refreshWhisperConfiguration() {
-        // This method will be called when Whisper settings change
-        // The server may need to be restarted to pick up new model settings
-        logger.log("Whisper configuration refreshed", level: .info)
-    }
-    
-    func updateHotkey(keyCode: Int, modifiers: [String]) {
+    func updateHotkeySettings(keyCode: Int, modifiers: [String]) {
+        let oldKeyCode = hotkeyKeyCode
+        let oldModifiers = hotkeyModifiers
+        
         hotkeyKeyCode = keyCode
         hotkeyModifiers = modifiers
+        
+        // Always notify hotkey changes as they require immediate reload
+        NotificationCenter.default.post(name: .hotkeySettingsChanged, object: self)
+        logger.log("Hotkey settings changed - hotkey reload required", level: .info)
+        
+        // Persist user changes
         saveSettings()
-        logger.log("Hotkey updated to: \(getHotkeyDisplayString())", level: .info)
     }
+    
+    func updateServerSettings(host: String, port: Int, pythonPath: String, scriptPath: String) {
+        let oldHost = serverHost
+        let oldPort = serverPort
+        let oldPythonPath = self.pythonPath
+        let oldScriptPath = self.scriptPath
+        
+        serverHost = host
+        serverPort = port
+        self.pythonPath = pythonPath
+        self.scriptPath = scriptPath
+        
+        // Check if critical server settings changed
+        if oldHost != host || oldPort != port || oldPythonPath != pythonPath || oldScriptPath != scriptPath {
+            NotificationCenter.default.post(name: .serverSettingsChanged, object: self)
+            logger.log("Server settings changed - server restart required", level: .info)
+        }
+        
+        // Persist user changes
+        saveSettings()
+    }
+    
+    func updateAudioSettings(sampleRate: Int, channels: Int, format: String, chunkDuration: Int) {
+        audioSampleRate = sampleRate
+        audioChannels = channels
+        audioFormat = format
+        audioChunkDuration = chunkDuration
+        
+        NotificationCenter.default.post(name: .audioSettingsChanged, object: self)
+        logger.log("Audio settings changed", level: .info)
+        
+        // Persist user changes
+        saveSettings()
+    }
+    
+    func updateLLMSettings(baseUrl: String, enabled: Bool, model: String, temperature: Double, maxTokens: Int, prompt: String?) {
+        llmBaseUrl = baseUrl
+        llmEnabled = enabled
+        llmModel = model
+        llmTemperature = temperature
+        llmMaxTokens = maxTokens
+        llmPrompt = prompt
+        
+        NotificationCenter.default.post(name: .llmSettingsChanged, object: self)
+        logger.log("LLM settings changed", level: .info)
+        
+        // Persist user changes
+        saveSettings()
+    }
+    
+    func updateLoggingSettings(enabled: Bool, logFile: String, maxFileSize: String, backupCount: Int) {
+        loggingEnabled = enabled
+        loggingLogFile = logFile
+        loggingMaxFileSize = maxFileSize
+        loggingBackupCount = backupCount
+        
+        NotificationCenter.default.post(name: .loggingSettingsChanged, object: self)
+        logger.log("Logging settings changed", level: .info)
+        
+        // Persist user changes
+        saveSettings()
+    }
+    
+    func manuallyReloadWhisperModel() {
+        // This method can be called from the UI to manually trigger a model reload
+        NotificationCenter.default.post(name: .whisperSettingsChanged, object: self)
+        logger.log("Manual Whisper model reload requested", level: .info)
+    }
+    
+    // MARK: - Utility Methods
     
     func getHotkeyDisplayString() -> String {
         var display = ""
@@ -139,7 +339,6 @@ class SettingsManager: ObservableObject {
         if hotkeyModifiers.contains("option") { display += "⌥" }
         if hotkeyModifiers.contains("control") { display += "⌃" }
         
-        // Convert keyCode to character (simplified mapping)
         let keyChar = keyCodeToCharacter(hotkeyKeyCode)
         display += keyChar
         
@@ -151,12 +350,10 @@ class SettingsManager: ObservableObject {
     }
     
     func getFullPythonPath() -> String {
-        // Use path as-is - can be absolute or relative to user's working directory
         return pythonPath
     }
     
     func getFullScriptPath() -> String {
-        // Use path as-is - can be absolute or relative to user's working directory  
         return scriptPath
     }
     
@@ -176,103 +373,58 @@ class SettingsManager: ObservableObject {
     }
     
     // MARK: - Private Methods
-    private func parseYAMLSettings(_ yamlString: String) {
-        let lines = yamlString.components(separatedBy: .newlines)
-        
-        enum Section {
-            case none
-            case stt
-            case server
-            case whisper
-            case llm
-            case hotkey
-            case audio
-            case logging
-        }
-        
-        var currentSection: Section = .none
-        
-        for rawLine in lines {
-            // Preserve indentation to detect top-level keys
-            let line = rawLine
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.isEmpty || trimmed.hasPrefix("#") { continue }
+    
+    private func parseYAMLSettings(_ yamlString: String) throws {
+        do {
+            let decoder = YAMLDecoder()
+            let config = try decoder.decode(AppConfig.self, from: yamlString)
+            self.appConfig = config
             
-            // Detect section headers (top-level keys end with ':')
-            let leadingSpaces = line.prefix { $0 == " " }.count
-            if leadingSpaces == 0 && trimmed.hasSuffix(":") {
-                switch trimmed {
-                case "stt:": currentSection = .stt
-                case "server:": currentSection = .server
-                case "whisper:": currentSection = .whisper
-                case "llm:": currentSection = .llm
-                case "hotkey:": currentSection = .hotkey
-                case "audio:": currentSection = .audio
-                case "logging:": currentSection = .logging
-                default: currentSection = .none
-                }
-                continue
-            }
+            // Update published properties
+            updatePublishedProperties(from: config)
             
-            // Parse keys within their respective sections only
-            switch currentSection {
-            case .whisper:
-                if trimmed.hasPrefix("model:") {
-                    whisperModel = extractValue(from: trimmed) ?? whisperModel
-                } else if trimmed.hasPrefix("language:") {
-                    whisperLanguage = extractValue(from: trimmed) ?? whisperLanguage
-                } else if trimmed.hasPrefix("task:") {
-                    whisperTask = extractValue(from: trimmed) ?? whisperTask
-                } else if trimmed.hasPrefix("temperature:") {
-                    if let tempStr = extractValue(from: trimmed),
-                       let temp = Double(tempStr) {
-                        whisperTemperature = temp
-                    }
-                }
-            case .server:
-                if trimmed.hasPrefix("host:") {
-                    serverHost = extractValue(from: trimmed) ?? serverHost
-                } else if trimmed.hasPrefix("port:") {
-                    if let portStr = extractValue(from: trimmed), let port = Int(portStr) {
-                        serverPort = port
-                    }
-                } else if trimmed.hasPrefix("python_path:") {
-                    pythonPath = extractValue(from: trimmed) ?? pythonPath
-                } else if trimmed.hasPrefix("script_path:") {
-                    scriptPath = extractValue(from: trimmed) ?? scriptPath
-                }
-            case .hotkey:
-                if trimmed.hasPrefix("key_code:") {
-                    if let keyStr = extractValue(from: trimmed), let key = Int(keyStr) {
-                        hotkeyKeyCode = key
-                    }
-                } else if trimmed.hasPrefix("modifiers:") {
-                    // Basic parsing for modifier list, e.g., modifiers: ["option"]
-                    if let raw = extractValue(from: trimmed) {
-                        let cleaned = raw.replacingOccurrences(of: "[", with: "")
-                            .replacingOccurrences(of: "]", with: "")
-                        let parts = cleaned.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
-                        if !parts.isEmpty { hotkeyModifiers = parts }
-                    }
-                }
-            default:
-                // Ignore keys in other sections here
-                break
-            }
+        } catch {
+            logger.logError(error, context: "Failed to parse YAML settings")
+            throw error
         }
     }
     
-    private func extractValue(from line: String) -> String? {
-        // Take the substring after the first ':'
-        guard let colonIndex = line.firstIndex(of: ":") else { return nil }
-        var value = String(line[line.index(after: colonIndex)...]).trimmingCharacters(in: .whitespaces)
-        // Strip inline comments
-        if let hashIndex = value.firstIndex(of: "#") {
-            value = String(value[..<hashIndex]).trimmingCharacters(in: .whitespaces)
-        }
-        // Strip surrounding quotes
-        value = value.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
-        return value.isEmpty ? nil : value
+    private func updatePublishedProperties(from config: AppConfig) {
+        // Whisper settings
+        whisperModel = config.whisper.model
+        whisperLanguage = config.whisper.language
+        whisperTask = config.whisper.task
+        whisperTemperature = config.whisper.temperature
+        
+        // Hotkey settings
+        hotkeyKeyCode = config.hotkey.keyCode
+        hotkeyModifiers = config.hotkey.modifiers
+        
+        // Server settings
+        serverHost = config.server.host
+        serverPort = config.server.port
+        pythonPath = config.server.pythonPath
+        scriptPath = config.server.scriptPath
+        
+        // Audio settings
+        audioSampleRate = config.audio.sampleRate
+        audioChannels = config.audio.channels
+        audioFormat = config.audio.format
+        audioChunkDuration = config.audio.chunkDuration
+        
+        // LLM settings
+        llmBaseUrl = config.llm.baseUrl
+        llmEnabled = config.llm.enabled
+        llmModel = config.llm.model
+        llmTemperature = config.llm.temperature
+        llmMaxTokens = config.llm.maxTokens
+        llmPrompt = config.llm.prompt
+        
+        // Logging settings
+        loggingEnabled = config.logging.enabled
+        loggingLogFile = config.logging.logFile
+        loggingMaxFileSize = config.logging.maxFileSize
+        loggingBackupCount = config.logging.backupCount
     }
     
     private func setDefaultSettings() {
@@ -280,65 +432,78 @@ class SettingsManager: ObservableObject {
         whisperLanguage = "en"
         whisperTask = "transcribe"
         whisperTemperature = 0.0
+        
         hotkeyKeyCode = 37  // L key
         hotkeyModifiers = ["option"]
+        
         serverHost = "localhost"
         serverPort = 3001
-        pythonPath = "Python/.venv/bin/python3"  // Relative to project folder
-        scriptPath = "Python/transcription_server.py"  // Relative to project folder
+        pythonPath = "Python/.venv/bin/python3"
+        scriptPath = "Python/transcription_server.py"
+        
+        audioSampleRate = 16000
+        audioChannels = 1
+        audioFormat = "wav"
+        audioChunkDuration = 3
+        
+        llmBaseUrl = "http://localhost:11434"
+        llmEnabled = true
+        llmModel = "llama3.1"
+        llmTemperature = 0.1
+        llmMaxTokens = 100
+        llmPrompt = nil
+        
+        loggingEnabled = true
+        loggingLogFile = "Logs/transcriptions.log"
+        loggingMaxFileSize = "10MB"
+        loggingBackupCount = 5
         
         logger.log("Default settings applied", level: .info)
     }
     
-    private func generateYAMLContent() -> String {
-        return """
-        # Speech-to-Text Application Configuration
-
-        # Model Selection
-        stt:
-          provider: "whisper"
-
-        # Server Settings (port is chosen dynamically at runtime)
-        server:
-          host: "\(serverHost)"
-          python_path: "\(pythonPath)"
-          script_path: "\(scriptPath)"
-
-        # Audio Settings
-        audio:
-          sample_rate: 16000
-          channels: 1
-          format: wav
-          chunk_duration: 3  # seconds
-
-        # Whisper Settings
-        whisper:
-          model: "\(whisperModel)"
-          language: "\(whisperLanguage)"
-          task: "\(whisperTask)"
-          temperature: \(whisperTemperature)
-
-        # LLM Settings
-        llm:
-          base_url: "http://localhost:11434"
-          enabled: true
-          model: "llama3.1"
-          temperature: 0.1
-          max_tokens: 100
-          prompt: null  # Use default prompt
-
-        # Hotkey Settings
-        hotkey:
-          key_code: \(hotkeyKeyCode)
-          modifiers: [\(hotkeyModifiers.map { "\"\($0)\"" }.joined(separator: ", "))]
-
-        # Logging Settings
-        logging:
-          enabled: true
-          log_file: "Logs/transcriptions.log"
-          max_file_size: "10MB"
-          backup_count: 5
-        """
+    private func generateYAMLContent() throws -> String {
+        let config = AppConfig(
+            stt: STTProviderConfig(provider: "whisper"),
+            server: ServerConfig(
+                host: serverHost,
+                port: serverPort,
+                pythonPath: pythonPath,
+                scriptPath: scriptPath
+            ),
+            audio: AudioConfig(
+                sampleRate: audioSampleRate,
+                channels: audioChannels,
+                format: audioFormat,
+                chunkDuration: audioChunkDuration
+            ),
+            whisper: WhisperConfig(
+                model: whisperModel,
+                language: whisperLanguage,
+                task: whisperTask,
+                temperature: whisperTemperature
+            ),
+            llm: LLMConfig(
+                baseUrl: llmBaseUrl,
+                enabled: llmEnabled,
+                model: llmModel,
+                temperature: llmTemperature,
+                maxTokens: llmMaxTokens,
+                prompt: llmPrompt
+            ),
+            hotkey: HotkeyConfig(
+                keyCode: hotkeyKeyCode,
+                modifiers: hotkeyModifiers
+            ),
+            logging: LoggingConfig(
+                enabled: loggingEnabled,
+                logFile: loggingLogFile,
+                maxFileSize: loggingMaxFileSize,
+                backupCount: loggingBackupCount
+            )
+        )
+        
+        let encoder = YAMLEncoder()
+        return try encoder.encode(config)
     }
     
     private func keyCodeToCharacter(_ keyCode: Int) -> String {

@@ -3,7 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var settingsManager = SettingsManager()
     @StateObject private var permissionManager = PermissionManager()
-    @State private var isRecordingHotkey = false
+    @StateObject private var hotkeyRecorder = HotkeyRecorder()
+    @State private var isReloadingModel = false
     
     let onSettingsChanged: (() -> Void)?
     let onBack: (() -> Void)?
@@ -86,8 +87,13 @@ struct SettingsView: View {
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
-                        .onChange(of: settingsManager.whisperModel) { _ in
-                            settingsManager.saveSettings()
+                        .onChange(of: settingsManager.whisperModel) { newValue in
+                            settingsManager.updateWhisperSettings(
+                                model: newValue,
+                                language: settingsManager.whisperLanguage,
+                                task: settingsManager.whisperTask,
+                                temperature: settingsManager.whisperTemperature
+                            )
                             onSettingsChanged?()
                         }
                     }
@@ -105,9 +111,338 @@ struct SettingsView: View {
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
-                        .onChange(of: settingsManager.whisperLanguage) { _ in
-                            settingsManager.saveSettings()
+                        .onChange(of: settingsManager.whisperLanguage) { newValue in
+                            settingsManager.updateWhisperSettings(
+                                model: settingsManager.whisperModel,
+                                language: newValue,
+                                task: settingsManager.whisperTask,
+                                temperature: settingsManager.whisperTemperature
+                            )
                             onSettingsChanged?()
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Task:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        Picker("Task", selection: $settingsManager.whisperTask) {
+                            ForEach(settingsManager.availableTasks, id: \.self) { task in
+                                Text(task.capitalized)
+                                    .tag(task)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .onChange(of: settingsManager.whisperTask) { newValue in
+                            settingsManager.updateWhisperSettings(
+                                model: settingsManager.whisperModel,
+                                language: settingsManager.whisperLanguage,
+                                task: newValue,
+                                temperature: settingsManager.whisperTemperature
+                            )
+                            onSettingsChanged?()
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Temperature:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        Slider(value: $settingsManager.whisperTemperature, in: 0.0...1.0, step: 0.1)
+                            .onChange(of: settingsManager.whisperTemperature) { newValue in
+                                settingsManager.updateWhisperSettings(
+                                    model: settingsManager.whisperModel,
+                                    language: settingsManager.whisperLanguage,
+                                    task: settingsManager.whisperTask,
+                                    temperature: newValue
+                                )
+                                onSettingsChanged?()
+                            }
+                        
+                        Text(String(format: "%.1f", settingsManager.whisperTemperature))
+                            .font(.system(.body, design: .monospaced))
+                            .frame(width: 30)
+                    }
+                    
+                    HStack {
+                        Text("")
+                            .frame(width: 70, alignment: .leading)
+                        
+                        Button("Reset to Defaults") {
+                            settingsManager.updateWhisperSettings(
+                                model: "small",
+                                language: "en",
+                                task: "transcribe",
+                                temperature: 0.0
+                            )
+                            onSettingsChanged?()
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                        
+                        Button(isReloadingModel ? "Reloading..." : "Reload Model") {
+                            isReloadingModel = true
+                            settingsManager.manuallyReloadWhisperModel()
+                            onSettingsChanged?()
+                            
+                            // Reset loading state after a delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                isReloadingModel = false
+                            }
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundColor(isReloadingModel ? .secondary : .blue)
+                        .font(.system(size: 12))
+                        .disabled(isReloadingModel)
+                        
+                        Spacer()
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Divider()
+            
+            // Server Configuration
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Server Settings")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Host:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        TextField("localhost", text: $settingsManager.serverHost)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .onChange(of: settingsManager.serverHost) { newValue in
+                                settingsManager.updateServerSettings(
+                                    host: newValue,
+                                    port: settingsManager.serverPort,
+                                    pythonPath: settingsManager.pythonPath,
+                                    scriptPath: settingsManager.scriptPath
+                                )
+                                onSettingsChanged?()
+                            }
+                    }
+                    
+                    HStack {
+                        Text("Port:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        TextField("Port", value: $settingsManager.serverPort, format: .number)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .onChange(of: settingsManager.serverPort) { newValue in
+                                settingsManager.updateServerSettings(
+                                    host: settingsManager.serverHost,
+                                    port: newValue,
+                                    pythonPath: settingsManager.pythonPath,
+                                    scriptPath: settingsManager.scriptPath
+                                )
+                                onSettingsChanged?()
+                            }
+                    }
+                    
+                    HStack {
+                        Text("")
+                            .frame(width: 70, alignment: .leading)
+                        
+                        Button("Reset to Defaults") {
+                            settingsManager.updateServerSettings(
+                                host: "localhost",
+                                port: 3001,
+                                pythonPath: "Python/.venv/bin/python3",
+                                scriptPath: "Python/transcription_server.py"
+                            )
+                            onSettingsChanged?()
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                        
+                        Spacer()
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Divider()
+            
+            // LLM Configuration
+            VStack(alignment: .leading, spacing: 12) {
+                Text("LLM Settings")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Enabled:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        Toggle("", isOn: $settingsManager.llmEnabled)
+                            .onChange(of: settingsManager.llmEnabled) { newValue in
+                                settingsManager.updateLLMSettings(
+                                    baseUrl: settingsManager.llmBaseUrl,
+                                    enabled: newValue,
+                                    model: settingsManager.llmModel,
+                                    temperature: settingsManager.llmTemperature,
+                                    maxTokens: settingsManager.llmMaxTokens,
+                                    prompt: settingsManager.llmPrompt
+                                )
+                                onSettingsChanged?()
+                            }
+                        
+                        Spacer()
+                    }
+                    
+                    if settingsManager.llmEnabled {
+                        HStack {
+                            Text("Base URL:")
+                                .foregroundColor(.secondary)
+                                .frame(width: 70, alignment: .leading)
+                                .font(.system(size: 14))
+                            
+                            TextField("http://localhost:11434", text: $settingsManager.llmBaseUrl)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: settingsManager.llmBaseUrl) { newValue in
+                                    settingsManager.updateLLMSettings(
+                                        baseUrl: newValue,
+                                        enabled: settingsManager.llmEnabled,
+                                        model: settingsManager.llmModel,
+                                        temperature: settingsManager.llmTemperature,
+                                        maxTokens: settingsManager.llmMaxTokens,
+                                        prompt: settingsManager.llmPrompt
+                                    )
+                                    onSettingsChanged?()
+                                }
+                        }
+                        
+                        HStack {
+                            Text("Model:")
+                                .foregroundColor(.secondary)
+                                .frame(width: 70, alignment: .leading)
+                                .font(.system(size: 14))
+                            
+                            TextField("llama3.1", text: $settingsManager.llmModel)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: settingsManager.llmModel) { newValue in
+                                    settingsManager.updateLLMSettings(
+                                        baseUrl: settingsManager.llmBaseUrl,
+                                        enabled: settingsManager.llmEnabled,
+                                        model: newValue,
+                                        temperature: settingsManager.llmTemperature,
+                                        maxTokens: settingsManager.llmMaxTokens,
+                                        prompt: settingsManager.llmPrompt
+                                    )
+                                    onSettingsChanged?()
+                                }
+                        }
+                        
+                        HStack {
+                            Text("")
+                                .frame(width: 70, alignment: .leading)
+                            
+                            Button("Reset to Defaults") {
+                                settingsManager.updateLLMSettings(
+                                    baseUrl: "http://localhost:11434",
+                                    enabled: true,
+                                    model: "llama3.1",
+                                    temperature: 0.1,
+                                    maxTokens: 100,
+                                    prompt: nil
+                                )
+                                onSettingsChanged?()
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 12))
+                            
+                            Spacer()
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Divider()
+            
+            // Logging Configuration
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Logging Settings")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Enabled:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        Toggle("", isOn: $settingsManager.loggingEnabled)
+                            .onChange(of: settingsManager.loggingEnabled) { newValue in
+                                settingsManager.updateLoggingSettings(
+                                    enabled: newValue,
+                                    logFile: settingsManager.loggingLogFile,
+                                    maxFileSize: settingsManager.loggingMaxFileSize,
+                                    backupCount: settingsManager.loggingBackupCount
+                                )
+                                onSettingsChanged?()
+                            }
+                        
+                        Spacer()
+                    }
+                    
+                    if settingsManager.loggingEnabled {
+                        HStack {
+                            Text("Log File:")
+                                .foregroundColor(.secondary)
+                                .frame(width: 70, alignment: .leading)
+                                .font(.system(size: 14))
+                            
+                            TextField("Logs/transcriptions.log", text: $settingsManager.loggingLogFile)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: settingsManager.loggingLogFile) { newValue in
+                                    settingsManager.updateLoggingSettings(
+                                        enabled: settingsManager.loggingEnabled,
+                                        logFile: newValue,
+                                        maxFileSize: settingsManager.loggingMaxFileSize,
+                                        backupCount: settingsManager.loggingBackupCount
+                                    )
+                                    onSettingsChanged?()
+                                }
+                        }
+                        
+                        HStack {
+                            Text("")
+                                .frame(width: 70, alignment: .leading)
+                            
+                            Button("Reset to Defaults") {
+                                settingsManager.updateLoggingSettings(
+                                    enabled: true,
+                                    logFile: "Logs/transcriptions.log",
+                                    maxFileSize: "10MB",
+                                    backupCount: 5
+                                )
+                                onSettingsChanged?()
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 12))
+                            
+                            Spacer()
                         }
                     }
                 }
@@ -122,27 +457,117 @@ struct SettingsView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                 
-                HStack {
-                    Text("Current:")
-                        .foregroundColor(.secondary)
-                        .frame(width: 70, alignment: .leading)
-                        .font(.system(size: 14))
-                    
-                    Text(settingsManager.getHotkeyDisplayString())
-                        .font(.system(.body, design: .monospaced))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color(NSColor.controlBackgroundColor))
-                        .cornerRadius(6)
-                    
-                    Spacer()
-                    
-                    Button(isRecordingHotkey ? "Press keys..." : "Change") {
-                        // Hotkey recording logic would go here
-                        isRecordingHotkey.toggle()
+                VStack(spacing: 10) {
+                    HStack {
+                        Text("Current:")
+                            .foregroundColor(.secondary)
+                            .frame(width: 70, alignment: .leading)
+                            .font(.system(size: 14))
+                        
+                        Text(settingsManager.getHotkeyDisplayString())
+                            .font(.system(.body, design: .monospaced))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(NSColor.controlBackgroundColor))
+                            .cornerRadius(6)
+                        
+                        Spacer()
+                        
+                        Button(hotkeyRecorder.isRecording ? "Recording..." : "Change") {
+                            if hotkeyRecorder.isRecording {
+                                hotkeyRecorder.stopRecording()
+                            } else {
+                                hotkeyRecorder.startRecording()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(hotkeyRecorder.isRecording)
                     }
-                    .buttonStyle(.bordered)
-                    .disabled(isRecordingHotkey)
+                    
+                    if hotkeyRecorder.isRecording {
+                        HStack {
+                            Text("Press:")
+                                .foregroundColor(.secondary)
+                                .frame(width: 70, alignment: .leading)
+                                .font(.system(size: 14))
+                            
+                            Text(hotkeyRecorder.displayString)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.blue)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(6)
+                            
+                            Spacer()
+                            
+                            Button("Cancel") {
+                                hotkeyRecorder.stopRecording()
+                            }
+                            .buttonStyle(.borderless)
+                            .foregroundColor(.red)
+                        }
+                        
+                        HStack {
+                            Text("")
+                                .frame(width: 70, alignment: .leading)
+                            
+                            Text("Press any key combination to set the new hotkey")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                        }
+                    }
+                    
+                    if !hotkeyRecorder.isRecording && (hotkeyRecorder.currentKeyCode != 0 || !hotkeyRecorder.currentModifiers.isEmpty) {
+                        HStack {
+                            Text("New:")
+                                .foregroundColor(.secondary)
+                                .frame(width: 70, alignment: .leading)
+                                .font(.system(size: 14))
+                            
+                            Text(hotkeyRecorder.displayString)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.green)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.green.opacity(0.1))
+                                .cornerRadius(6)
+                            
+                            Spacer()
+                            
+                            Button("Apply") {
+                                let (keyCode, modifiers) = hotkeyRecorder.getHotkeyConfiguration()
+                                settingsManager.updateHotkeySettings(keyCode: keyCode, modifiers: modifiers)
+                                onSettingsChanged?()
+                                
+                                // Reset recorder
+                                hotkeyRecorder.resetToDefaults()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            Button("Cancel") {
+                                hotkeyRecorder.resetToDefaults()
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                    
+                    HStack {
+                        Text("")
+                            .frame(width: 70, alignment: .leading)
+                        
+                        Button("Reset to Defaults") {
+                            settingsManager.updateHotkeySettings(keyCode: 37, modifiers: ["option"])
+                            onSettingsChanged?()
+                        }
+                        .buttonStyle(.borderless)
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                        
+                        Spacer()
+                    }
                 }
             }
             .padding(.horizontal, 20)

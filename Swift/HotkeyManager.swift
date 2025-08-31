@@ -35,18 +35,28 @@ class HotkeyManager {
     private var localMonitor: Any?
     
     private let logger = Logger()
-    private let settingsManager = SettingsManager()
+    private let settingsManager: SettingsManager
     
     // Callback for when hotkey is pressed
     var onHotkeyPressed: (() -> Void)?
     
     // MARK: - Initialization
-    init() {
+    init(settingsManager: SettingsManager) {
+        self.settingsManager = settingsManager
         logger.log("[HotkeyManager] Initializing", level: .info)
         setupHotkeys()
+        
+        // Listen for settings changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleHotkeySettingsChanged),
+            name: .hotkeySettingsChanged,
+            object: nil
+        )
     }
     
     deinit {
+        NotificationCenter.default.removeObserver(self)
         cleanup()
     }
     
@@ -55,6 +65,12 @@ class HotkeyManager {
         logger.log("[HotkeyManager] Refreshing hotkey configuration", level: .info)
         cleanup()
         setupHotkeys()
+    }
+    
+    // MARK: - Settings Change Handling
+    @objc private func handleHotkeySettingsChanged() {
+        logger.log("[HotkeyManager] Hotkey settings changed, refreshing configuration", level: .info)
+        refreshHotkeyConfiguration()
     }
     
     // MARK: - Setup

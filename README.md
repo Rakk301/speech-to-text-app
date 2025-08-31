@@ -51,6 +51,32 @@ speech-to-text-app/
 - CLI-style Python scripts for easy testing and iteration
 - Comprehensive logging for debugging and user feedback
 
+## ⚙️ Settings Management
+
+The app uses a robust YAML-based configuration system with automatic component reloading:
+
+### Configuration Features
+- **Type-safe YAML parsing** using the Yams package
+- **Automatic settings persistence** to user documents directory
+- **Real-time component updates** when relevant settings change
+- **Comprehensive configuration** covering all app aspects
+
+### Settings Categories
+- **Whisper Configuration**: Model size, language, task, temperature
+- **Server Settings**: Host, port, Python paths
+- **Hotkey Configuration**: Global key combinations
+- **LLM Settings**: Post-processing model and parameters
+- **Audio Settings**: Sample rate, channels, format
+- **Logging Configuration**: File paths and rotation
+
+### Automatic Reloading
+- **Whisper settings changes** → Server automatically restarts
+- **Hotkey configuration changes** → Global hotkeys automatically reload
+- **Server settings changes** → Server automatically restarts
+- **Other settings changes** → Components update in real-time
+
+See `YAMS_SETUP.md` for detailed setup instructions.
+
 ## 🔧 Building the Project
 
 ### Prerequisites
@@ -91,6 +117,7 @@ The app requires the following permissions:
 - **Carbon** - Global hotkey management
 - **AppKit** - macOS UI components
 - **Foundation** - Basic functionality
+- **Yams** - YAML configuration parsing and generation
 
 #### Python Dependencies
 - **whisper** - Speech-to-text transcription

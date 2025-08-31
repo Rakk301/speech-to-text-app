@@ -8,11 +8,27 @@ class ServerManager {
     private let folderAccessManager: FolderAccessManager
     private let logger = Logger()
     private var serverProcess: Process?
+    private var isRestarting = false
     
     // MARK: - Initialization
     init(settingsManager: SettingsManager? = nil, folderAccessManager: FolderAccessManager? = nil) {
         self.settingsManager = settingsManager ?? SettingsManager()
         self.folderAccessManager = folderAccessManager ?? FolderAccessManager()
+        
+        // Listen for settings changes that require server restart
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleWhisperSettingsChanged),
+            name: .whisperSettingsChanged,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleServerSettingsChanged),
+            name: .serverSettingsChanged,
+            object: nil
+        )
     }
     
     // MARK: - Public Methods
@@ -138,6 +154,158 @@ class ServerManager {
         serverProcess?.terminate()
         serverProcess = nil
         logger.log("[ServerManager] Server stopped", level: .info)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        stopServer()
+    }
+
+    @objc private func handleServerSettingsChanged() {
+        logger.log("[ServerManager] Server settings changed, restarting server...", level: .info)
+        restartServerForSettingsChange()
+    }
+    
+    @objc private func handleWhisperSettingsChanged() {
+        logger.log("[ServerManager] Whisper settings changed, attempting to reload model via API...", level: .info)
+        reloadWhisperModelViaAPI()
+    }
+    
+    private func restartServerForSettingsChange() {
+        // Prevent multiple simultaneous restarts
+        guard !isRestarting else {
+            logger.log("[ServerManager] Server restart already in progress, skipping...", level: .warning)
+            return
+        }
+        
+        isRestarting = true
+        
+        // Stop current server
+        stopServer()
+        
+        // Wait a moment for cleanup, then restart
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.startServer { success in
+                DispatchQueue.main.async {
+                    self?.isRestarting = false
+                    if success {
+                        self?.logger.log("[ServerManager] Server restarted successfully after settings change", level: .info)
+                    } else {
+                        self?.logger.log("[ServerManager] Failed to restart server after settings change", level: .error)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func reloadWhisperModelViaAPI() {
+        // First check if the server supports the reload_model endpoint
+        checkServerCapabilities { [weak self] supportsReload in
+            if supportsReload {
+                self?.performModelReload()
+            } else {
+                self?.logger.log("[ServerManager] Server doesn't support model reload, falling back to restart", level: .warning)
+                self?.restartServerForSettingsChange()
+            }
+        }
+    }
+    
+    private func checkServerCapabilities(completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "\(settingsManager.getServerURL())/providers") else {
+            completion(false)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5.0
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                self.logger.log("[ServerManager] Failed to check server capabilities: \(error)", level: .error)
+                completion(false)
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                // Check if the response contains the reload_model endpoint info
+                if let data = data,
+                   let responseDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let providers = responseDict["providers"] as? [String: Any],
+                   let whisper = providers["whisper"] as? [String: Any] {
+                    // If we get a valid response, assume the server supports reload
+                    completion(true)
+                } else {
+                    completion(false)
+                }
+            } else {
+                completion(false)
+            }
+        }.resume()
+    }
+    
+    private func performModelReload() {
+        guard let url = URL(string: "\(settingsManager.getServerURL())/reload_model") else {
+            logger.log("[ServerManager] Failed to create reload_model URL", level: .error)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Send the new configuration
+        let config: [String: Any] = [
+            "model": settingsManager.whisperModel,
+            "language": settingsManager.whisperLanguage,
+            "task": settingsManager.whisperTask,
+            "temperature": settingsManager.whisperTemperature
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: config)
+        } catch {
+            logger.log("[ServerManager] Failed to serialize model config: \(error)", level: .error)
+            return
+        }
+        
+        logger.log("[ServerManager] Sending model reload request with config: \(config)", level: .info)
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    self?.logger.log("[ServerManager] Failed to reload model via API: \(error)", level: .error)
+                    // Fallback to server restart if API call fails
+                    self?.logger.log("[ServerManager] Falling back to server restart...", level: .warning)
+                    self?.restartServerForSettingsChange()
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    if httpResponse.statusCode == 200 {
+                        self?.logger.log("[ServerManager] Whisper model reloaded successfully via API", level: .info)
+                        
+                        // Parse response to get updated config
+                        if let data = data,
+                           let responseDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let updatedConfig = responseDict["config"] as? [String: Any] {
+                            self?.logger.log("[ServerManager] Model updated with config: \(updatedConfig)", level: .info)
+                            
+                            // Post notification for successful model reload
+                            NotificationCenter.default.post(
+                                name: .whisperModelReloaded,
+                                object: self,
+                                userInfo: ["config": updatedConfig]
+                            )
+                        }
+                    } else {
+                        self?.logger.log("[ServerManager] Failed to reload model via API: HTTP \(httpResponse.statusCode)", level: .error)
+                        // Fallback to server restart if API call fails
+                        self?.logger.log("[ServerManager] Falling back to server restart...", level: .warning)
+                        self?.restartServerForSettingsChange()
+                    }
+                }
+            }
+        }.resume()
     }
     
     // MARK: - Private Methods

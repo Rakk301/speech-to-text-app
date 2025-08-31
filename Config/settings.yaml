@@ -7,6 +7,7 @@ stt:
 # Server Settings
 server:
   host: "localhost"
+  port: 3001
   python_path: "Python/.venv/bin/python3"
   script_path: "Python/transcription_server.py"
 

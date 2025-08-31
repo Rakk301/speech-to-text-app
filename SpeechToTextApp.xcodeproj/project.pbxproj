@@ -13,12 +13,15 @@
 		0057411E2E551E0E00392845 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411A2E551E0E00392845 /* HistoryView.swift */; };
 		0057411F2E551E0E00392845 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411C2E551E0E00392845 /* SettingsView.swift */; };
 		00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00869A142E56E33600D65D58 /* MenuBarIconManager.swift */; };
+		0089707B2E65055C002AB0F8 /* settings.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 0089707A2E65055C002AB0F8 /* settings.yaml */; };
 		00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */; };
 		00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */; };
 		00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */; };
 		00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */; };
 		00AE3B802E42DC0200CD52A8 /* ServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */; };
 		00B091662E42E642009C7745 /* FolderAccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B091652E42E642009C7745 /* FolderAccessManager.swift */; };
+		00E612A82E593BC4002E23F2 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 00E612A72E593BC4002E23F2 /* Yams */; };
+		00E612AA2E593E66002E23F2 /* HotkeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */; };
 		00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */; };
 		00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */; };
 		00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516F2E24D05200BE5FC7 /* Logger.swift */; };
@@ -33,12 +36,14 @@
 		0057411B2E551E0E00392845 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Swift/MenuBarView.swift; sourceTree = "<group>"; };
 		0057411C2E551E0E00392845 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Swift/SettingsView.swift; sourceTree = "<group>"; };
 		00869A142E56E33600D65D58 /* MenuBarIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconManager.swift; path = Swift/MenuBarIconManager.swift; sourceTree = "<group>"; };
+		0089707A2E65055C002AB0F8 /* settings.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = settings.yaml; path = Config/settings.yaml; sourceTree = "<group>"; };
 		00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = Swift/HistoryManager.swift; sourceTree = "<group>"; };
 		00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = Swift/NotificationManager.swift; sourceTree = "<group>"; };
 		00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsManager.swift; path = Swift/SettingsManager.swift; sourceTree = "<group>"; };
 		00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ServerManager.swift; path = Swift/ServerManager.swift; sourceTree = "<group>"; };
 		00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServerClient.swift; path = Swift/TranscriptionServerClient.swift; sourceTree = "<group>"; };
 		00B091652E42E642009C7745 /* FolderAccessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FolderAccessManager.swift; path = Swift/FolderAccessManager.swift; sourceTree = "<group>"; };
+		00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyRecorder.swift; path = Swift/HotkeyRecorder.swift; sourceTree = "<group>"; };
 		00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeechToTextApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioRecorder.swift; path = Swift/AudioRecorder.swift; sourceTree = "<group>"; };
 		00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpeechToTextApp.swift; path = Swift/SpeechToTextApp.swift; sourceTree = "<group>"; };
@@ -47,19 +52,12 @@
 		00EA51712E24D1F100BE5FC7 /* PasteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PasteManager.swift; path = Swift/PasteManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		00B026012E42E198009C7745 /* Config */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Config;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
 		00EA51582E24C05900BE5FC7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00E612A82E593BC4002E23F2 /* Yams in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -73,7 +71,6 @@
 				00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */,
 				00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */,
 				00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */,
-				00B026012E42E198009C7745 /* Config */,
 				0022F3142E53036500C45DA7 /* PermissionManager.swift */,
 				00EA51712E24D1F100BE5FC7 /* PasteManager.swift */,
 				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
@@ -85,10 +82,12 @@
 				00EA515C2E24C05900BE5FC7 /* Products */,
 				00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */,
 				00B091652E42E642009C7745 /* FolderAccessManager.swift */,
+				0089707A2E65055C002AB0F8 /* settings.yaml */,
 				00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */,
 				0057411A2E551E0E00392845 /* HistoryView.swift */,
 				0057411B2E551E0E00392845 /* MenuBarView.swift */,
 				0057411C2E551E0E00392845 /* SettingsView.swift */,
+				00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -115,11 +114,9 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				00B026012E42E198009C7745 /* Config */,
-			);
 			name = SpeechToTextApp;
 			packageProductDependencies = (
+				00E612A72E593BC4002E23F2 /* Yams */,
 			);
 			productName = SpeechToTextApp;
 			productReference = 00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */;
@@ -150,6 +147,9 @@
 			);
 			mainGroup = 00EA51522E24C05900BE5FC7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				00E612A62E593BC4002E23F2 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 00EA515C2E24C05900BE5FC7 /* Products */;
 			projectDirPath = "";
@@ -165,6 +165,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0089707B2E65055C002AB0F8 /* settings.yaml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +178,7 @@
 			files = (
 				00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */,
 				00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */,
+				00E612AA2E593E66002E23F2 /* HotkeyRecorder.swift in Sources */,
 				00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */,
 				00AE3B802E42DC0200CD52A8 /* ServerManager.swift in Sources */,
 				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,
@@ -417,6 +419,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		00E612A62E593BC4002E23F2 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		00E612A72E593BC4002E23F2 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00E612A62E593BC4002E23F2 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 00EA51532E24C05900BE5FC7 /* Project object */;
 }
