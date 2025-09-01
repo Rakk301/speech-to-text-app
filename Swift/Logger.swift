@@ -8,14 +8,16 @@ enum LogLevel: String {
 }
 
 class Logger {
-    
+
     // MARK: - Properties
     private let logFileURL: URL
     private let dateFormatter: DateFormatter
     private let fileHandle: FileHandle?
+    private let componentName: String?
     
     // MARK: - Initialization
-    init() {
+    init(componentName: String? = nil) {
+        self.componentName = componentName
         // Create logs directory if it doesn't exist
         let logsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Logs")
         
@@ -53,7 +55,8 @@ class Logger {
     // MARK: - Public Methods
     func log(_ message: String, level: LogLevel = .info) {
         let timestamp = dateFormatter.string(from: Date())
-        let logEntry = "[\(timestamp)] [\(level.rawValue)] \(message)\n"
+        let prefix = componentName != nil ? "[\(componentName!)] " : ""
+        let logEntry = "[\(timestamp)] [\(level.rawValue)] \(prefix)\(message)\n"
         
         // Write to file
         if let data = logEntry.data(using: .utf8) {

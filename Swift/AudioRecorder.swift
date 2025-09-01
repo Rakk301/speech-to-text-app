@@ -30,7 +30,7 @@ class AudioRecorder {
     // MARK: - Initialization
     init() {
         inputNode = audioEngine.inputNode
-        logger = Logger()
+        logger = Logger(componentName: "AudioRecorder")
     }
     
     deinit {
@@ -41,7 +41,6 @@ class AudioRecorder {
     
     /// Start recording - macOS will automatically request microphone permission if needed
     func startRecording() throws {
-        logger?.log("Starting audio recording", level: .info)
         
         // Create temporary audio file
         recordingURL = createTemporaryAudioFile()
@@ -50,11 +49,8 @@ class AudioRecorder {
             throw AudioRecorderError.fileCreationFailed
         }
         
-        logger?.log("Recording to: \(url.path)", level: .debug)
-        
         // Get the native format from the input node
         let format = inputNode.inputFormat(forBus: 0)
-        logger?.log("Using audio format: \(format)", level: .debug)
         
         // Create audio file
         do {
@@ -95,17 +91,6 @@ class AudioRecorder {
         // Return the recorded file URL
         let url = recordingURL
         recordingURL = nil
-        
-        if let url = url {
-            
-            // Check file size
-            let fileManager = FileManager.default
-            if fileManager.fileExists(atPath: url.path) {
-                let attributes = try? fileManager.attributesOfItem(atPath: url.path)
-                let fileSize = attributes?[.size] as? Int64 ?? 0
-                logger?.log("Audio file size: \(fileSize) bytes", level: .debug)
-            }
-        }
         
         return url
     }
