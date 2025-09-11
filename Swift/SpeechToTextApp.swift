@@ -22,12 +22,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var hotkeyManager: HotkeyManager?
     private var pasteManager: PasteManager?
     private var transcriptionClient: TranscriptionServerClient?
-    private var serverManager: ServerManager?
+    private var serverManager: TranscriptionServer?
     private var logger: Logger?
     private var settingsManager: SettingsManager?
     private var historyManager: HistoryManager?
     private var notificationManager: NotificationManager?
-    private var folderAccessManager: FolderAccessManager?
     private var menuBarView: MenuBarView?
     private var popover: NSPopover?
     private var menuBarIconManager: MenuBarIconManager?
@@ -58,21 +57,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         settingsManager = SettingsManager()
         historyManager = HistoryManager()
         notificationManager = NotificationManager()
-        folderAccessManager = FolderAccessManager()
-        
+
         // Initialize core components
         audioRecorder = AudioRecorder()
-        
-        guard let settingsManager = settingsManager,
-              let folderAccessManager = folderAccessManager else {
+
+        guard let settingsManager = settingsManager else {
             logger?.log("Failed to initialize required managers", level: .error)
             return
         }
-        
+
         hotkeyManager = HotkeyManager(settingsManager: settingsManager)
         pasteManager = PasteManager()
         transcriptionClient = TranscriptionServerClient(settingsManager: settingsManager)
-        serverManager = ServerManager(settingsManager: settingsManager, folderAccessManager: folderAccessManager)
+        serverManager = TranscriptionServer(settingsManager: settingsManager)
         logger?.log("TranscriptionServerClient component initialized", level: .debug)
         
         // Set up hotkey callback

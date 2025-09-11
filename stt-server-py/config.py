@@ -12,12 +12,12 @@ from typing import Dict, Any, Optional
 class Config:
     """Configuration manager for the speech-to-text application."""
     
-    def __init__(self, config_path: str = "Config/settings.yaml"):
+    def __init__(self, config_path: str = "settings.yaml"):
         """
         Initialize configuration manager.
         
         Args:
-            config_path: Path to configuration file
+            config_path: Path to configuration file (relative to current working directory)
         """
         self.logger = logging.getLogger(__name__)
         self.config_path = Path(config_path)

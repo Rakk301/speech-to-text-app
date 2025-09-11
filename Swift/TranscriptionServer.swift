@@ -1,19 +1,17 @@
 import Foundation
 import Darwin
 
-class ServerManager {
-    
+class TranscriptionServer {
+
     // MARK: - Properties
     private let settingsManager: SettingsManager
-    private let folderAccessManager: FolderAccessManager
-    private let logger = Logger()
+    private let logger = Logger(componentName: "TranscriptionServer")
     private var serverProcess: Process?
     private var isRestarting = false
-    
+
     // MARK: - Initialization
-    init(settingsManager: SettingsManager? = nil, folderAccessManager: FolderAccessManager? = nil) {
-        self.settingsManager = settingsManager ?? SettingsManager()
-        self.folderAccessManager = folderAccessManager ?? FolderAccessManager()
+    init(settingsManager: SettingsManager) {
+        self.settingsManager = settingsManager
         
         // Listen for settings changes that require server restart
         NotificationCenter.default.addObserver(
@@ -33,27 +31,27 @@ class ServerManager {
     
     // MARK: - Public Methods
     func startServer(completion: @escaping (Bool) -> Void) {
-        logger.log("[ServerManager] Starting transcription server...", level: .info)
+        logger.log("Starting transcription server...", level: .info)
         
         // Determine which port to use: prefer configured non-zero if available; otherwise pick a free port
         let desiredPort = self.settingsManager.serverPort
         if desiredPort > 0 {
             if self.isPortAvailable(desiredPort) {
-                self.logger.log("[ServerManager] Using configured port: \(desiredPort)", level: .info)
+                self.logger.log("Using configured port: \(desiredPort)", level: .info)
             } else if let freePort = self.findAvailablePort() {
                 self.settingsManager.serverPort = freePort
-                self.logger.log("[ServerManager] Configured port \(desiredPort) unavailable; selected free port: \(freePort)", level: .warning)
+                self.logger.log("Configured port \(desiredPort) unavailable; selected free port: \(freePort)", level: .warning)
             } else {
-                self.logger.log("[ServerManager] Failed to find a free port", level: .error)
+                self.logger.log("Failed to find a free port", level: .error)
                 completion(false)
                 return
             }
         } else {
             if let freePort = self.findAvailablePort() {
                 self.settingsManager.serverPort = freePort
-                self.logger.log("[ServerManager] Selected free port: \(freePort)", level: .info)
+                self.logger.log("Selected free port: \(freePort)", level: .info)
             } else {
-                self.logger.log("[ServerManager] Failed to find a free port", level: .error)
+                self.logger.log("Failed to find a free port", level: .error)
                 completion(false)
                 return
             }
@@ -63,35 +61,68 @@ class ServerManager {
     }
 
     private func launchServerProcess(completion: @escaping (Bool) -> Void) {
-        // Check if we have folder access
-        guard folderAccessManager.hasProjectFolderAccess else {
-            logger.log("[ServerManager] No project folder access. Please select project folder in settings.", level: .error)
+        // Get bundle resources URL - stt-server-py is copied as a subdirectory
+        guard let bundleResources = Bundle.main.resourceURL else {
+            logger.log("Failed to get bundle resources URL", level: .error)
+            completion(false)
+            return
+        }
+
+        // Python server is in stt-server-py subdirectory within Resources
+        let pythonProjectDir = bundleResources.appendingPathComponent("stt-server-py")
+        let scriptPath = pythonProjectDir.appendingPathComponent("transcription_server.py")
+        
+        // Use app support directory for settings (consistent with SettingsManager)
+        let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first!.appendingPathComponent("SpeechToTextApp")
+        let settingsPath = appSupportURL.appendingPathComponent("settings.yaml")
+
+        logger.log("Using uv run with project: \(pythonProjectDir.path)", level: .info)
+        logger.log("Script: \(scriptPath.path)", level: .info)
+        logger.log("Settings: \(settingsPath.path)", level: .info)
+        
+        // Verify paths exist
+        if !FileManager.default.fileExists(atPath: pythonProjectDir.path) {
+            logger.log("Python project directory does not exist: \(pythonProjectDir.path)", level: .error)
             completion(false)
             return
         }
         
-        // Get full paths using folder access
-        guard let fullPythonPath = folderAccessManager.getFullPath(for: settingsManager.pythonPath) else {
-            logger.log("[ServerManager] Failed to resolve Python path: \(settingsManager.pythonPath)", level: .error)
+        if !FileManager.default.fileExists(atPath: scriptPath.path) {
+            logger.log("Transcription server script does not exist: \(scriptPath.path)", level: .error)
             completion(false)
             return
         }
         
-        guard let fullScriptPath = folderAccessManager.getFullPath(for: settingsManager.scriptPath) else {
-            logger.log("[ServerManager] Failed to resolve script path: \(settingsManager.scriptPath)", level: .error)
+        logger.log("All required paths verified successfully", level: .info)
+
+        // Check if uv is available
+        guard self.isUvAvailable() else {
+            logger.log("uv is not installed. Please install with: brew install uv", level: .error)
             completion(false)
             return
         }
-        
-        logger.log("[ServerManager] Using Python: \(fullPythonPath)", level: .info)
-        logger.log("[ServerManager] Using Script: \(fullScriptPath)", level: .info)
-        
-        // Create process
+
+        // Create process using uv run
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: fullPythonPath)
-        process.arguments = [fullScriptPath, "../Config/settings.yaml", "--host", settingsManager.serverHost, "--port", "\(settingsManager.serverPort)"]
         
-        // Ensure PATH includes common locations for Homebrew-installed tools like ffmpeg
+        guard let uvPath = findUvPath() else {
+            logger.log("uv not found in any expected location", level: .error)
+            completion(false)
+            return
+        }
+        
+        process.executableURL = URL(fileURLWithPath: uvPath)
+        process.arguments = [
+            "run",
+            "--project", pythonProjectDir.path,
+            "python", scriptPath.path,
+            settingsPath.path,
+            "--host", settingsManager.serverHost,
+            "--port", "\(settingsManager.serverPort)"
+        ]
+
+        // Ensure PATH includes common locations for Homebrew-installed tools like ffmpeg and uv
         var env = ProcessInfo.processInfo.environment
         let extraBins = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"]
         let currentPath = env["PATH"] ?? ""
@@ -105,10 +136,9 @@ class ServerManager {
         }.joined(separator: ":")
         env["PATH"] = newPath
         process.environment = env
-        
-        // Set working directory to script's directory
-        let scriptDirectory = URL(fileURLWithPath: fullScriptPath).deletingLastPathComponent()
-        process.currentDirectoryURL = scriptDirectory
+
+        // Set working directory to Python project directory
+        process.currentDirectoryURL = pythonProjectDir
         
         // Set up pipes for monitoring
         let outputPipe = Pipe()
@@ -121,7 +151,7 @@ class ServerManager {
         outputPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if data.count > 0, let outputString = String(data: data, encoding: .utf8) {
-                self?.logger.log("[ServerManager] Server stdout: \(outputString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .debug)
+                self?.logger.log("Server stdout: \(outputString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .debug)
                 
                 // Check if server is ready - look for server start message or listen message
                 if outputString.contains(expectedServerMessage) ||
@@ -134,7 +164,7 @@ class ServerManager {
         errorPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
             if data.count > 0, let errorString = String(data: data, encoding: .utf8) {
-                self?.logger.log("[ServerManager] Server stderr: \(errorString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .warning)
+                self?.logger.log("Server stderr: \(errorString.trimmingCharacters(in: .whitespacesAndNewlines))", level: .warning)
             }
         }
         
@@ -142,10 +172,10 @@ class ServerManager {
         do {
             try process.run()
             serverProcess = process
-            logger.log("[ServerManager] Server process started successfully", level: .info)
+            logger.log("Server process started successfully", level: .info)
             completion(true)
         } catch {
-            logger.logError(error, context: "[ServerManager] Failed to start server")
+            logger.logError(error, context: "Failed to start server")
             completion(false)
         }
     }
@@ -153,7 +183,7 @@ class ServerManager {
     func stopServer() {
         serverProcess?.terminate()
         serverProcess = nil
-        logger.log("[ServerManager] Server stopped", level: .info)
+        logger.log("Server stopped", level: .info)
     }
     
     deinit {
@@ -162,19 +192,19 @@ class ServerManager {
     }
 
     @objc private func handleServerSettingsChanged() {
-        logger.log("[ServerManager] Server settings changed, restarting server...", level: .info)
+        logger.log("Server settings changed, restarting server...", level: .info)
         restartServerForSettingsChange()
     }
     
     @objc private func handleWhisperSettingsChanged() {
-        logger.log("[ServerManager] Whisper settings changed, attempting to reload model via API...", level: .info)
+        logger.log("Whisper settings changed, attempting to reload model via API...", level: .info)
         reloadWhisperModelViaAPI()
     }
     
     private func restartServerForSettingsChange() {
         // Prevent multiple simultaneous restarts
         guard !isRestarting else {
-            logger.log("[ServerManager] Server restart already in progress, skipping...", level: .warning)
+            logger.log("Server restart already in progress, skipping...", level: .warning)
             return
         }
         
@@ -189,9 +219,9 @@ class ServerManager {
                 DispatchQueue.main.async {
                     self?.isRestarting = false
                     if success {
-                        self?.logger.log("[ServerManager] Server restarted successfully after settings change", level: .info)
+                        self?.logger.log("Server restarted successfully after settings change", level: .info)
                     } else {
-                        self?.logger.log("[ServerManager] Failed to restart server after settings change", level: .error)
+                        self?.logger.log("Failed to restart server after settings change", level: .error)
                     }
                 }
             }
@@ -204,7 +234,7 @@ class ServerManager {
             if supportsReload {
                 self?.performModelReload()
             } else {
-                self?.logger.log("[ServerManager] Server doesn't support model reload, falling back to restart", level: .warning)
+                self?.logger.log("Server doesn't support model reload, falling back to restart", level: .warning)
                 self?.restartServerForSettingsChange()
             }
         }
@@ -221,7 +251,7 @@ class ServerManager {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                self.logger.log("[ServerManager] Failed to check server capabilities: \(error)", level: .error)
+                self.logger.log("Failed to check server capabilities: \(error)", level: .error)
                 completion(false)
                 return
             }
@@ -231,7 +261,7 @@ class ServerManager {
                 if let data = data,
                    let responseDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let providers = responseDict["providers"] as? [String: Any],
-                   let whisper = providers["whisper"] as? [String: Any] {
+                   let _ = providers["whisper"] as? [String: Any] {
                     // If we get a valid response, assume the server supports reload
                     completion(true)
                 } else {
@@ -245,7 +275,7 @@ class ServerManager {
     
     private func performModelReload() {
         guard let url = URL(string: "\(settingsManager.getServerURL())/reload_model") else {
-            logger.log("[ServerManager] Failed to create reload_model URL", level: .error)
+            logger.log("Failed to create reload_model URL", level: .error)
             return
         }
         
@@ -264,31 +294,31 @@ class ServerManager {
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: config)
         } catch {
-            logger.log("[ServerManager] Failed to serialize model config: \(error)", level: .error)
+            logger.log("Failed to serialize model config: \(error)", level: .error)
             return
         }
         
-        logger.log("[ServerManager] Sending model reload request with config: \(config)", level: .info)
+        logger.log("Sending model reload request with config: \(config)", level: .info)
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    self?.logger.log("[ServerManager] Failed to reload model via API: \(error)", level: .error)
+                    self?.logger.log("Failed to reload model via API: \(error)", level: .error)
                     // Fallback to server restart if API call fails
-                    self?.logger.log("[ServerManager] Falling back to server restart...", level: .warning)
+                    self?.logger.log("Falling back to server restart...", level: .warning)
                     self?.restartServerForSettingsChange()
                     return
                 }
                 
                 if let httpResponse = response as? HTTPURLResponse {
                     if httpResponse.statusCode == 200 {
-                        self?.logger.log("[ServerManager] Whisper model reloaded successfully via API", level: .info)
+                        self?.logger.log("Whisper model reloaded successfully via API", level: .info)
                         
                         // Parse response to get updated config
                         if let data = data,
                            let responseDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                            let updatedConfig = responseDict["config"] as? [String: Any] {
-                            self?.logger.log("[ServerManager] Model updated with config: \(updatedConfig)", level: .info)
+                            self?.logger.log("Model updated with config: \(updatedConfig)", level: .info)
                             
                             // Post notification for successful model reload
                             NotificationCenter.default.post(
@@ -298,17 +328,31 @@ class ServerManager {
                             )
                         }
                     } else {
-                        self?.logger.log("[ServerManager] Failed to reload model via API: HTTP \(httpResponse.statusCode)", level: .error)
+                        self?.logger.log("Failed to reload model via API: HTTP \(httpResponse.statusCode)", level: .error)
                         // Fallback to server restart if API call fails
-                        self?.logger.log("[ServerManager] Falling back to server restart...", level: .warning)
+                        self?.logger.log("Falling back to server restart...", level: .warning)
                         self?.restartServerForSettingsChange()
                     }
                 }
             }
         }.resume()
     }
-    
+
     // MARK: - Private Methods
+    private func findUvPath() -> String? {
+        let possiblePaths = ["/opt/homebrew/bin/uv", "/usr/local/bin/uv", "/usr/bin/uv"]
+        for path in possiblePaths {
+            if FileManager.default.fileExists(atPath: path) {
+                return path
+            }
+        }
+        return nil
+    }
+    
+    private func isUvAvailable() -> Bool {
+        return findUvPath() != nil
+    }
+
     private func isPortAvailable(_ port: Int) -> Bool {
         let sock = socket(AF_INET, SOCK_STREAM, 0)
         if sock < 0 { return false }

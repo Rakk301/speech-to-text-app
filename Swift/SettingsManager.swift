@@ -119,8 +119,8 @@ class SettingsManager: ObservableObject {
     
     @Published var serverHost: String = "localhost"
     @Published var serverPort: Int = 3001
-    @Published var pythonPath: String = "Python/.venv/bin/python3"
-    @Published var scriptPath: String = "Python/transcription_server.py"
+    @Published var pythonPath: String = "stt-server-py/.venv/bin/python3"
+    @Published var scriptPath: String = "stt-server-py/transcription_server.py"
     
     @Published var audioSampleRate: Int = 16000
     @Published var audioChannels: Int = 1
@@ -151,10 +151,10 @@ class SettingsManager: ObservableObject {
     
     // MARK: - Initialization
     init() {
-         #if DEBUG
-        // Debug/Testing: Use current app directory for easy access
+        #if DEBUG
+        // Debug/Testing: Use stt-server-py directory for easy access during development
         let currentDirectory = FileManager.default.currentDirectoryPath
-        configFileURL = URL(fileURLWithPath: currentDirectory).appendingPathComponent("Config/settings.yaml")
+        configFileURL = URL(fileURLWithPath: currentDirectory).appendingPathComponent("stt-server-py/settings.yaml")
         logger.log("DEBUG MODE: Using config file at: \(configFileURL.path)", level: .debug)
         #else
         // Release: Use standard macOS app support directory
@@ -438,8 +438,8 @@ class SettingsManager: ObservableObject {
         
         serverHost = "localhost"
         serverPort = 3001
-        pythonPath = "Python/.venv/bin/python3"
-        scriptPath = "Python/transcription_server.py"
+        pythonPath = "stt-server-py/.venv/bin/python3"
+        scriptPath = "stt-server-py/transcription_server.py"
         
         audioSampleRate = 16000
         audioChannels = 1

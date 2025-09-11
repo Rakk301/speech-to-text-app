@@ -24,18 +24,18 @@ class TranscriptionServerClient {
     
     // MARK: - Properties
     private let settingsManager: SettingsManager
-    private let logger = Logger()
+    private let logger = Logger(componentName: "TranscriptionServerClient")
     private let session = URLSession.shared
     private let timeoutInterval: TimeInterval = 30.0
     
     // MARK: - Initialization
-    init(settingsManager: SettingsManager? = nil) {
-        self.settingsManager = settingsManager ?? SettingsManager()
+    init(settingsManager: SettingsManager) {
+        self.settingsManager = settingsManager
     }
     
     // MARK: - Public Methods
     func transcribeAudio(_ audioFileURL: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        logger.log("[TranscriptionServerClient] Starting transcription for: \(audioFileURL.path)", level: .info)
+        logger.log("Starting transcription for: \(audioFileURL.path)", level: .info)
         
         // Check if file exists
         guard FileManager.default.fileExists(atPath: audioFileURL.path) else {
@@ -86,7 +86,7 @@ class TranscriptionServerClient {
                 }
                 
                 if let transcription = json?["transcription"] as? String {
-                    self.logger.log("[TranscriptionServerClient] Transcription successful: \(transcription)", level: .info)
+                    self.logger.log("Transcription successful: \(transcription)", level: .info)
                     completion(.success(transcription))
                 } else {
                     completion(.failure(TranscriptionServerError.invalidResponse))
@@ -95,24 +95,6 @@ class TranscriptionServerClient {
                 completion(.failure(TranscriptionServerError.invalidResponse))
             }
         }
-        task.resume()
-    }
-    
-    func checkServerHealth(completion: @escaping (Bool) -> Void) {
-        let baseURL = settingsManager.getServerURL()
-        guard let url = URL(string: "\(baseURL)/health") else {
-            completion(false)
-            return
-        }
-        
-        let task = session.dataTask(with: url) { data, response, error in
-            if let httpResponse = response as? HTTPURLResponse {
-                completion(httpResponse.statusCode == 200)
-            } else {
-                completion(false)
-            }
-        }
-        
         task.resume()
     }
 } 
