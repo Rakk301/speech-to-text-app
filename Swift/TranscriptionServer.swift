@@ -72,10 +72,8 @@ class TranscriptionServer {
         let pythonProjectDir = bundleResources.appendingPathComponent("stt-server-py")
         let scriptPath = pythonProjectDir.appendingPathComponent("transcription_server.py")
         
-        // Use app support directory for settings (consistent with SettingsManager)
-        let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first!.appendingPathComponent("SpeechToTextApp")
-        let settingsPath = appSupportURL.appendingPathComponent("settings.yaml")
+        // Use bundled settings.yaml from stt-server-py folder
+        let settingsPath = pythonProjectDir.appendingPathComponent("settings.yaml")
 
         logger.log("Using uv run with project: \(pythonProjectDir.path)", level: .info)
         logger.log("Script: \(scriptPath.path)", level: .info)
@@ -96,27 +94,25 @@ class TranscriptionServer {
         
         logger.log("All required paths verified successfully", level: .info)
 
-        // Check if uv is available
-        guard self.isUvAvailable() else {
-            logger.log("uv is not installed. Please install with: brew install uv", level: .error)
+        // Get the uv path from settings
+        let uvPath = settingsManager.uvPath
+        logger.log("Using uv path from settings: \(uvPath)", level: .debug)
+        
+        // Check if the specified path exists
+        if !FileManager.default.fileExists(atPath: uvPath) {
+            logger.log("uv executable not found at: \(uvPath)", level: .error)
             completion(false)
             return
         }
 
-        // Create process using uv run
+        // Create process using the specified uv path
         let process = Process()
-        
-        guard let uvPath = findUvPath() else {
-            logger.log("uv not found in any expected location", level: .error)
-            completion(false)
-            return
-        }
         
         process.executableURL = URL(fileURLWithPath: uvPath)
         process.arguments = [
             "run",
             "--project", pythonProjectDir.path,
-            "python", scriptPath.path,
+            "python", scriptPath.lastPathComponent,  // Use just the filename since we're in the project directory
             settingsPath.path,
             "--host", settingsManager.serverHost,
             "--port", "\(settingsManager.serverPort)"
@@ -369,8 +365,13 @@ class TranscriptionServer {
         return bindResult == 0
     }
     private func findAvailablePort() -> Int? {
+        logger.log("Attempting to find available port...", level: .debug)
+        
         let sock = socket(AF_INET, SOCK_STREAM, 0)
-        if sock < 0 { return nil }
+        if sock < 0 { 
+            logger.log("Failed to create socket, errno: \(errno)", level: .error)
+            return nil 
+        }
         defer { close(sock) }
         
         var addr = sockaddr_in()
@@ -383,7 +384,10 @@ class TranscriptionServer {
             let sockAddrPtr = UnsafeRawPointer(ptr).assumingMemoryBound(to: sockaddr.self)
             return bind(sock, sockAddrPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
         }
-        if bindResult != 0 { return nil }
+        if bindResult != 0 { 
+            logger.log("Failed to bind socket, errno: \(errno)", level: .error)
+            return nil 
+        }
         
         // Get assigned port
         var len = socklen_t(MemoryLayout<sockaddr_in>.size)
@@ -392,9 +396,13 @@ class TranscriptionServer {
             let sockAddrPtr = UnsafeMutableRawPointer(ptr).assumingMemoryBound(to: sockaddr.self)
             return getsockname(sock, sockAddrPtr, &len)
         }
-        if nameResult != 0 { return nil }
+        if nameResult != 0 { 
+            logger.log("Failed to get socket name, errno: \(errno)", level: .error)
+            return nil 
+        }
         
         let port = Int(UInt16(bigEndian: getsockAddr.sin_port))
+        logger.log("Found available port: \(port)", level: .debug)
         return port
     }
     private func checkServerHealth(completion: @escaping (Bool) -> Void) {

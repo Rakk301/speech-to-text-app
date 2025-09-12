@@ -10,13 +10,13 @@ struct STTProviderConfig: Codable {
 struct ServerConfig: Codable {
     var host: String
     var port: Int
-    var pythonPath: String
+    var uvPath: String
     var scriptPath: String
     
     enum CodingKeys: String, CodingKey {
         case host
         case port
-        case pythonPath = "python_path"
+        case uvPath = "uv_path"
         case scriptPath = "script_path"
     }
 }
@@ -119,8 +119,8 @@ class SettingsManager: ObservableObject {
     
     @Published var serverHost: String = "localhost"
     @Published var serverPort: Int = 3001
-    @Published var pythonPath: String = "stt-server-py/.venv/bin/python3"
-    @Published var scriptPath: String = "stt-server-py/transcription_server.py"
+    @Published var uvPath: String = "/opt/homebrew/bin/uv"
+    @Published var scriptPath: String = "transcription_server.py"  // Relative to stt-server-py folder
     
     @Published var audioSampleRate: Int = 16000
     @Published var audioChannels: Int = 1
@@ -135,7 +135,7 @@ class SettingsManager: ObservableObject {
     @Published var llmPrompt: String? = nil
     
     @Published var loggingEnabled: Bool = true
-    @Published var loggingLogFile: String = "Logs/transcriptions.log"
+    @Published var loggingLogFile: String = "transcriptions.log"
     @Published var loggingMaxFileSize: String = "10MB"
     @Published var loggingBackupCount: Int = 5
     
@@ -151,21 +151,23 @@ class SettingsManager: ObservableObject {
     
     // MARK: - Initialization
     init() {
-        #if DEBUG
-        // Debug/Testing: Use stt-server-py directory for easy access during development
-        let currentDirectory = FileManager.default.currentDirectoryPath
-        configFileURL = URL(fileURLWithPath: currentDirectory).appendingPathComponent("stt-server-py/settings.yaml")
-        logger.log("DEBUG MODE: Using config file at: \(configFileURL.path)", level: .debug)
-        #else
-        // Release: Use standard macOS app support directory
+        // Always use Application Support for writable config
+        // Default config is bundled, user config goes to Application Support
         let appSupportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first!.appendingPathComponent("SpeechToTextApp")
         configFileURL = appSupportURL.appendingPathComponent("settings.yaml")
-        logger.log("RELEASE MODE: Using config file at: \(configFileURL.path)", level: .debug)
-        #endif
+        logger.log("Using config file at: \(configFileURL.path)", level: .debug)
         
         // Load or create settings
         loadSettings()
+    }
+    
+    // MARK: - Private Methods
+    private func getBundledSettingsURL() -> URL? {
+        guard let bundleResources = Bundle.main.resourceURL else {
+            return nil
+        }
+        return bundleResources.appendingPathComponent("stt-server-py/settings.yaml")
     }
     
     // MARK: - Public Methods
@@ -191,7 +193,31 @@ class SettingsManager: ObservableObject {
                 createDefaultSettings()
             }
         } else {
-            // Create default settings file
+            // Try to copy from bundled settings first
+            if let bundledSettingsURL = getBundledSettingsURL() {
+                do {
+                    // Ensure the Application Support directory exists
+                    try FileManager.default.createDirectory(at: configFileURL.deletingLastPathComponent(), 
+                                                          withIntermediateDirectories: true, 
+                                                          attributes: nil)
+                    
+                    // Copy bundled settings to writable location
+                    try FileManager.default.copyItem(at: bundledSettingsURL, to: configFileURL)
+                    logger.log("Copied bundled settings to: \(configFileURL.path)", level: .info)
+                    
+                    // Load the copied settings
+                    let data = try Data(contentsOf: configFileURL)
+                    if let yamlString = String(data: data, encoding: .utf8) {
+                        try parseYAMLSettings(yamlString)
+                        logger.log("Loaded settings from bundled copy", level: .info)
+                        return
+                    }
+                } catch {
+                    logger.log("Failed to copy bundled settings: \(error)", level: .warning)
+                }
+            }
+            
+            // Create default settings file if bundled copy failed
             logger.log("No settings file found, creating defaults", level: .debug)
             createDefaultSettings()
         }
@@ -262,19 +288,19 @@ class SettingsManager: ObservableObject {
         saveSettings()
     }
     
-    func updateServerSettings(host: String, port: Int, pythonPath: String, scriptPath: String) {
+    func updateServerSettings(host: String, port: Int, uvPath: String, scriptPath: String) {
         let oldHost = serverHost
         let oldPort = serverPort
-        let oldPythonPath = self.pythonPath
+        let oldUvPath = self.uvPath
         let oldScriptPath = self.scriptPath
         
         serverHost = host
         serverPort = port
-        self.pythonPath = pythonPath
+        self.uvPath = uvPath
         self.scriptPath = scriptPath
         
         // Check if critical server settings changed
-        if oldHost != host || oldPort != port || oldPythonPath != pythonPath || oldScriptPath != scriptPath {
+        if oldHost != host || oldPort != port || oldUvPath != uvPath || oldScriptPath != scriptPath {
             NotificationCenter.default.post(name: .serverSettingsChanged, object: self)
             logger.log("Server settings changed - server restart required", level: .info)
         }
@@ -349,8 +375,8 @@ class SettingsManager: ObservableObject {
         return "http://\(serverHost):\(serverPort)"
     }
     
-    func getFullPythonPath() -> String {
-        return pythonPath
+    func getFullUvPath() -> String {
+        return uvPath
     }
     
     func getFullScriptPath() -> String {
@@ -403,7 +429,7 @@ class SettingsManager: ObservableObject {
         // Server settings
         serverHost = config.server.host
         serverPort = config.server.port
-        pythonPath = config.server.pythonPath
+        uvPath = config.server.uvPath
         scriptPath = config.server.scriptPath
         
         // Audio settings
@@ -438,8 +464,8 @@ class SettingsManager: ObservableObject {
         
         serverHost = "localhost"
         serverPort = 3001
-        pythonPath = "stt-server-py/.venv/bin/python3"
-        scriptPath = "stt-server-py/transcription_server.py"
+        uvPath = "/opt/homebrew/bin/uv"  // Full path to uv executable
+        scriptPath = "transcription_server.py"  // Relative to stt-server-py folder
         
         audioSampleRate = 16000
         audioChannels = 1
@@ -454,7 +480,7 @@ class SettingsManager: ObservableObject {
         llmPrompt = nil
         
         loggingEnabled = true
-        loggingLogFile = "Logs/transcriptions.log"
+        loggingLogFile = "transcriptions.log"
         loggingMaxFileSize = "10MB"
         loggingBackupCount = 5
         
@@ -467,7 +493,7 @@ class SettingsManager: ObservableObject {
             server: ServerConfig(
                 host: serverHost,
                 port: serverPort,
-                pythonPath: pythonPath,
+                uvPath: uvPath,
                 scriptPath: scriptPath
             ),
             audio: AudioConfig(

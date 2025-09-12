@@ -13,19 +13,18 @@
 		0057411E2E551E0E00392845 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411A2E551E0E00392845 /* HistoryView.swift */; };
 		0057411F2E551E0E00392845 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411C2E551E0E00392845 /* SettingsView.swift */; };
 		00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00869A142E56E33600D65D58 /* MenuBarIconManager.swift */; };
-		0089707B2E65055C002AB0F8 /* settings.yaml in Resources */ = {isa = PBXBuildFile; fileRef = 0089707A2E65055C002AB0F8 /* settings.yaml */; };
+		0089707B2E65055C002AB0F8 /* stt-server-py in Resources */ = {isa = PBXBuildFile; fileRef = 0089707A2E65055C002AB0F8 /* stt-server-py */; };
 		00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */; };
 		00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */; };
 		00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */; };
 		00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */; };
-		00AE3B802E42DC0200CD52A8 /* ServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */; };
-		00B091662E42E642009C7745 /* FolderAccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00B091652E42E642009C7745 /* FolderAccessManager.swift */; };
 		00E612A82E593BC4002E23F2 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 00E612A72E593BC4002E23F2 /* Yams */; };
 		00E612AA2E593E66002E23F2 /* HotkeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */; };
 		00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */; };
 		00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */; };
 		00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516F2E24D05200BE5FC7 /* Logger.swift */; };
 		00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51712E24D1F100BE5FC7 /* PasteManager.swift */; };
+		00EA51732E24D1F100BE5FC7 /* TranscriptionServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,13 +35,11 @@
 		0057411B2E551E0E00392845 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Swift/MenuBarView.swift; sourceTree = "<group>"; };
 		0057411C2E551E0E00392845 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Swift/SettingsView.swift; sourceTree = "<group>"; };
 		00869A142E56E33600D65D58 /* MenuBarIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconManager.swift; path = Swift/MenuBarIconManager.swift; sourceTree = "<group>"; };
-		0089707A2E65055C002AB0F8 /* settings.yaml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = settings.yaml; path = Config/settings.yaml; sourceTree = "<group>"; };
+		0089707A2E65055C002AB0F8 /* stt-server-py */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "stt-server-py"; path = "stt-server-py"; sourceTree = "<group>"; };
 		00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = Swift/HistoryManager.swift; sourceTree = "<group>"; };
 		00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = Swift/NotificationManager.swift; sourceTree = "<group>"; };
 		00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsManager.swift; path = Swift/SettingsManager.swift; sourceTree = "<group>"; };
-		00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ServerManager.swift; path = Swift/ServerManager.swift; sourceTree = "<group>"; };
 		00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServerClient.swift; path = Swift/TranscriptionServerClient.swift; sourceTree = "<group>"; };
-		00B091652E42E642009C7745 /* FolderAccessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FolderAccessManager.swift; path = Swift/FolderAccessManager.swift; sourceTree = "<group>"; };
 		00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyRecorder.swift; path = Swift/HotkeyRecorder.swift; sourceTree = "<group>"; };
 		00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeechToTextApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioRecorder.swift; path = Swift/AudioRecorder.swift; sourceTree = "<group>"; };
@@ -50,6 +47,7 @@
 		00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeechToTextApp.entitlements; sourceTree = "<group>"; };
 		00EA516F2E24D05200BE5FC7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Swift/Logger.swift; sourceTree = "<group>"; };
 		00EA51712E24D1F100BE5FC7 /* PasteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PasteManager.swift; path = Swift/PasteManager.swift; sourceTree = "<group>"; };
+		00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServer.swift; path = Swift/TranscriptionServer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +71,7 @@
 				00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */,
 				0022F3142E53036500C45DA7 /* PermissionManager.swift */,
 				00EA51712E24D1F100BE5FC7 /* PasteManager.swift */,
+				00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */,
 				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
 				00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */,
 				00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */,
@@ -80,9 +79,7 @@
 				000968732E24DD7C000173E2 /* HotkeyManager.swift */,
 				00EA516F2E24D05200BE5FC7 /* Logger.swift */,
 				00EA515C2E24C05900BE5FC7 /* Products */,
-				00AE3B7D2E42DC0200CD52A8 /* ServerManager.swift */,
-				00B091652E42E642009C7745 /* FolderAccessManager.swift */,
-				0089707A2E65055C002AB0F8 /* settings.yaml */,
+				0089707A2E65055C002AB0F8 /* stt-server-py */,
 				00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */,
 				0057411A2E551E0E00392845 /* HistoryView.swift */,
 				0057411B2E551E0E00392845 /* MenuBarView.swift */,
@@ -165,7 +162,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0089707B2E65055C002AB0F8 /* settings.yaml in Resources */,
+				0089707B2E65055C002AB0F8 /* stt-server-py in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,14 +177,13 @@
 				00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */,
 				00E612AA2E593E66002E23F2 /* HotkeyRecorder.swift in Sources */,
 				00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */,
-				00AE3B802E42DC0200CD52A8 /* ServerManager.swift in Sources */,
 				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,
+				00EA51732E24D1F100BE5FC7 /* TranscriptionServer.swift in Sources */,
 				000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */,
 				00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */,
 				0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */,
 				00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */,
 				00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */,
-				00B091662E42E642009C7745 /* FolderAccessManager.swift in Sources */,
 				0057411D2E551E0E00392845 /* MenuBarView.swift in Sources */,
 				0057411E2E551E0E00392845 /* HistoryView.swift in Sources */,
 				0057411F2E551E0E00392845 /* SettingsView.swift in Sources */,
@@ -339,12 +335,6 @@
 					"@executable_path/../Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/torch/lib",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/random/lib",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/_soundfile_data",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/tiktoken",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/_core/lib",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/llvmlite/binding",
 				);
 				MARKETING_VERSION = 1.0;
 				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
@@ -380,12 +370,6 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/torch/lib",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/random/lib",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/_soundfile_data",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/tiktoken",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/numpy/_core/lib",
-					"$(PROJECT_DIR)/Python/.venv/lib/python3.13/site-packages/llvmlite/binding",
 				);
 				MARKETING_VERSION = 1.0;
 				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";

@@ -18,8 +18,12 @@ class Logger {
     // MARK: - Initialization
     init(componentName: String? = nil) {
         self.componentName = componentName
-        // Create logs directory if it doesn't exist
-        let logsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Logs")
+        
+        // Use proper macOS logs directory: ~/Library/Logs/<AppName>/
+        let appName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "SpeechToTextApp"
+        let logsDirectory = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)
+            .first?.appendingPathComponent("Logs")
+            .appendingPathComponent(appName)
         
         if let logsDir = logsDirectory {
             try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)

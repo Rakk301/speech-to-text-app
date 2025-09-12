@@ -8,7 +8,7 @@ stt:
 server:
   host: "localhost"
   port: 3001
-  python_path: ".venv/bin/python3"
+  uv_path: "/opt/homebrew/bin/uv"
   script_path: "transcription_server.py"
 
 # Audio Settings
@@ -42,6 +42,6 @@ hotkey:
 # Logging Settings
 logging:
   enabled: true
-  log_file: "Logs/transcriptions.log"
+  log_file: "transcriptions.log"
   max_file_size: "10MB"
   backup_count: 5 

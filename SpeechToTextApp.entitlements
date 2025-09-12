@@ -17,6 +17,9 @@
 	<!-- Network access - to connect to the transcription server -->
 	<key>com.apple.security.network.client</key>
 	<true/>
+	<!-- Network server access - to bind to localhost ports for the transcription server -->
+	<key>com.apple.security.network.server</key>
+	<true/>
 	<!-- Accessibility - to register hotkeys, paste-at-cursor -->
 	<key>com.apple.security.device.accessibility</key>
 	<true/>

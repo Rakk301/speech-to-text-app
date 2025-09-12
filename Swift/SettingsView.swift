@@ -227,7 +227,7 @@ struct SettingsView: View {
                                 settingsManager.updateServerSettings(
                                     host: newValue,
                                     port: settingsManager.serverPort,
-                                    pythonPath: settingsManager.pythonPath,
+                                    uvPath: settingsManager.uvPath,
                                     scriptPath: settingsManager.scriptPath
                                 )
                                 onSettingsChanged?()
@@ -246,7 +246,7 @@ struct SettingsView: View {
                                 settingsManager.updateServerSettings(
                                     host: settingsManager.serverHost,
                                     port: newValue,
-                                    pythonPath: settingsManager.pythonPath,
+                                    uvPath: settingsManager.uvPath,
                                     scriptPath: settingsManager.scriptPath
                                 )
                                 onSettingsChanged?()
@@ -261,8 +261,8 @@ struct SettingsView: View {
                             settingsManager.updateServerSettings(
                                 host: "localhost",
                                 port: 3001,
-                                pythonPath: "Python/.venv/bin/python3",
-                                scriptPath: "Python/transcription_server.py"
+                                uvPath: "/opt/homebrew/bin/uv",
+                                scriptPath: "transcription_server.py"
                             )
                             onSettingsChanged?()
                         }
