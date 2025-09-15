@@ -47,7 +47,7 @@ class WhisperProvider(BaseSTTProvider):
                 audio_path,
                 language=self.config.get("language", "en"),
                 task=self.config.get("task", "transcribe"),
-                temperature=self.config.get("temperature", 0.0),
+                temperature=float(self.config.get("temperature", 0.0)),
                 fp16=False  # Disable for better compatibility
             )
             transcription = result["text"].strip()
