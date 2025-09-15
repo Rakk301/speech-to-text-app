@@ -56,15 +56,11 @@ class PermissionManager: ObservableObject {
     
     // MARK: - Initialization
     init() {
-        checkAllPermissions()
-    }
-    
-    // MARK: - Public Methods
-    func checkAllPermissions() {
         checkMicrophonePermission()
         checkAccessibilityPermission()
     }
     
+    // MARK: - Public Methods    
     func requestMicrophonePermission() async -> Bool {
         let status = AVCaptureDevice.authorizationStatus(for: .audio)
         
@@ -109,7 +105,7 @@ class PermissionManager: ObservableObject {
         logger.log("Accessibility permission requested, trusted: \(trusted)", level: .info)
     }
     
-
+    // Note : simplify the states of permission - isActive
     
     func openSystemPreferences(for permission: PermissionType) {
         switch permission {

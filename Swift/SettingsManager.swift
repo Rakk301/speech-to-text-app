@@ -140,7 +140,7 @@ class SettingsManager: ObservableObject {
     @Published var loggingBackupCount: Int = 5
     
     // MARK: - Properties
-    private let configFileURL: URL
+    let configFileURL: URL
     private let logger = Logger()
     private var appConfig: AppConfig?
     
@@ -161,6 +161,7 @@ class SettingsManager: ObservableObject {
         // Load or create settings
         loadSettings()
     }
+
     
     // MARK: - Private Methods
     private func getBundledSettingsURL() -> URL? {
@@ -222,6 +223,7 @@ class SettingsManager: ObservableObject {
             createDefaultSettings()
         }
     }
+
 
     private func createDefaultSettings() {
         logger.log("Creating default settings file", level: .info)

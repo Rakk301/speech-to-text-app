@@ -22,14 +22,14 @@ class PasteManager {
     
     // MARK: - Properties
     private let pasteboard = NSPasteboard.general
-    private let logger = Logger()
+    private let logger = Logger(componentName: "PasteManager")
     private var originalClipboardContent: String?
     
     // MARK: - Public Methods
     func pasteText(_ text: String, completion: @escaping (Bool) -> Void) {
         // Check accessibility permissions first
-        guard checkAccessibilityPermissions() else {
-            logger.log("[PasteManager] Accessibility permissions not granted", level: .warning)
+        guard AXIsProcessTrusted() else {
+            logger.log("Accessibility permissions not granted", level: .warning)
             completion(false)
             return
         }
@@ -39,7 +39,7 @@ class PasteManager {
         
         // Copy text to clipboard
         guard copyToClipboard(text) else {
-            logger.log("[PasteManager] Failed to copy text to clipboard", level: .error)
+            logger.log("Failed to copy text to clipboard", level: .error)
             completion(false)
             return
         }
@@ -53,9 +53,9 @@ class PasteManager {
         }
         
         if success {
-            logger.log("[PasteManager] Text pasted at cursor successfully", level: .info)
+            logger.log("Text pasted at cursor successfully", level: .info)
         } else {
-            logger.log("[PasteManager] Failed to paste text at cursor", level: .error)
+            logger.log("Failed to paste text at cursor", level: .error)
         }
         
         completion(success)
@@ -64,14 +64,14 @@ class PasteManager {
     // MARK: - Private Methods
     private func saveOriginalClipboard() {
         originalClipboardContent = pasteboard.string(forType: .string)
-        logger.log("[PasteManager] Saved original clipboard content", level: .debug)
+        logger.log("Saved original clipboard content", level: .debug)
     }
     
     private func restoreOriginalClipboard() {
         if let originalContent = originalClipboardContent {
             pasteboard.clearContents()
             pasteboard.setString(originalContent, forType: .string)
-            logger.log("[PasteManager] Restored original clipboard content", level: .debug)
+            logger.log("Restored original clipboard content", level: .debug)
         }
         originalClipboardContent = nil
     }
@@ -82,34 +82,30 @@ class PasteManager {
         
         // Set new text content
         guard pasteboard.setString(text, forType: .string) else {
-            logger.log("[PasteManager] Failed to set text in clipboard", level: .error)
+            logger.log("Failed to set text in clipboard", level: .error)
             return false
         }
         
-        logger.log("[PasteManager] Text copied to clipboard successfully", level: .info)
+        logger.log("Text copied to clipboard successfully", level: .info)
         return true
-    }
-    
-    private func checkAccessibilityPermissions() -> Bool {
-        return AXIsProcessTrusted()
     }
     
     private func simulatePasteKeyEvent() -> Bool {
         // Create Cmd+V key event
         guard let source = CGEventSource(stateID: .combinedSessionState) else {
-            logger.log("[PasteManager] Failed to create CGEventSource", level: .error)
+            logger.log("Failed to create CGEventSource", level: .error)
             return false
         }
         
         // Create key down event for 'V' key (keycode 9) with Command modifier
         guard let keyDownEvent = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true) else {
-            logger.log("[PasteManager] Failed to create key down event", level: .error)
+            logger.log("Failed to create key down event", level: .error)
             return false
         }
         
         // Create key up event for 'V' key
         guard let keyUpEvent = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false) else {
-            logger.log("[PasteManager] Failed to create key up event", level: .error)
+            logger.log("Failed to create key up event", level: .error)
             return false
         }
         
@@ -125,7 +121,7 @@ class PasteManager {
         
         keyUpEvent.post(tap: .cgAnnotatedSessionEventTap)
         
-        logger.log("[PasteManager] Sent Cmd+V key events", level: .debug)
+        logger.log("Sent Cmd+V key events", level: .debug)
         return true
     }
 } 

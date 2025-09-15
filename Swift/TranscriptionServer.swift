@@ -72,38 +72,22 @@ class TranscriptionServer {
         let pythonProjectDir = bundleResources.appendingPathComponent("stt-server-py")
         let scriptPath = pythonProjectDir.appendingPathComponent("transcription_server.py")
         
-        // Use bundled settings.yaml from stt-server-py folder
-        let settingsPath = pythonProjectDir.appendingPathComponent("settings.yaml")
+        // Use settings file from Application Support
+        let settingsPath = settingsManager.configFileURL
 
         logger.log("Using uv run with project: \(pythonProjectDir.path)", level: .info)
         logger.log("Script: \(scriptPath.path)", level: .info)
         logger.log("Settings: \(settingsPath.path)", level: .info)
         
-        // Verify paths exist
-        if !FileManager.default.fileExists(atPath: pythonProjectDir.path) {
-            logger.log("Python project directory does not exist: \(pythonProjectDir.path)", level: .error)
-            completion(false)
-            return
-        }
-        
-        if !FileManager.default.fileExists(atPath: scriptPath.path) {
-            logger.log("Transcription server script does not exist: \(scriptPath.path)", level: .error)
-            completion(false)
-            return
-        }
-        
-        logger.log("All required paths verified successfully", level: .info)
-
-        // Get the uv path from settings
         let uvPath = settingsManager.uvPath
-        logger.log("Using uv path from settings: \(uvPath)", level: .debug)
-        
+
         // Check if the specified path exists
         if !FileManager.default.fileExists(atPath: uvPath) {
             logger.log("uv executable not found at: \(uvPath)", level: .error)
             completion(false)
             return
         }
+        logger.log("uv path verified successfully", level: .info)
 
         // Create process using the specified uv path
         let process = Process()
@@ -335,20 +319,6 @@ class TranscriptionServer {
     }
 
     // MARK: - Private Methods
-    private func findUvPath() -> String? {
-        let possiblePaths = ["/opt/homebrew/bin/uv", "/usr/local/bin/uv", "/usr/bin/uv"]
-        for path in possiblePaths {
-            if FileManager.default.fileExists(atPath: path) {
-                return path
-            }
-        }
-        return nil
-    }
-    
-    private func isUvAvailable() -> Bool {
-        return findUvPath() != nil
-    }
-
     private func isPortAvailable(_ port: Int) -> Bool {
         let sock = socket(AF_INET, SOCK_STREAM, 0)
         if sock < 0 { return false }
