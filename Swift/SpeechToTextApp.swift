@@ -14,7 +14,7 @@ struct SpeechToTextApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowDelegate {
     
     // MARK: - Properties
     private var statusItem: NSStatusItem?
@@ -27,9 +27,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var settingsManager: SettingsManager?
     private var historyManager: HistoryManager?
     private var notificationManager: NotificationManager?
-    private var menuBarView: MenuBarView?
+    private var menuBarPopoverView: MenuBarPopoverView?
     private var popover: NSPopover?
     private var menuBarIconManager: MenuBarIconManager?
+    
+    // Settings window
+    private var settingsWindow: NSWindow?
+    private var settingsWindowController: NSWindowController?
     
     private var isRecording = false
     
@@ -77,16 +81,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             self?.handleHotkeyPress()
         }
         
-        // Initialize menu bar view
-        menuBarView = MenuBarView()
-        menuBarView?.onStartRecording = { [weak self] in
+        // Initialize menu bar popover view
+        menuBarPopoverView = MenuBarPopoverView()
+        menuBarPopoverView?.onStartRecording = { [weak self] in
             self?.startRecording()
         }
-        menuBarView?.onStopRecording = { [weak self] in
+        menuBarPopoverView?.onStopRecording = { [weak self] in
             self?.stopRecording()
         }
-        menuBarView?.onSettingsChanged = { [weak self] in
+        menuBarPopoverView?.onOpenSettings = { [weak self] in
+            self?.openSettingsWindow()
+        }
+        
+        // Set up notification observers for settings changes
+        NotificationCenter.default.addObserver(
+            forName: .whisperModelChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
             self?.handleSettingsChanged()
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: .hotkeyChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.hotkeyManager?.refreshHotkeyConfiguration()
         }
         
         logger?.log("App Components Initialized", level: .debug)
@@ -125,21 +146,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
     
     private func setupPopover() {
-        guard let menuBarView = menuBarView else {
-            logger?.log("Error: menuBarView is nil during popover setup", level: .error)
+        guard let menuBarPopoverView = menuBarPopoverView else {
+            logger?.log("Error: menuBarPopoverView is nil during popover setup", level: .error)
             return
         }
         
         popover = NSPopover()
-        popover?.contentSize = NSSize(width: 280, height: 450)
+        popover?.contentSize = NSSize(width: 220, height: 150)
         popover?.behavior = .transient  // Auto-dismisses when losing focus
         popover?.animates = true
-        popover?.contentViewController = NSHostingController(rootView: menuBarView)
+        popover?.contentViewController = NSHostingController(rootView: menuBarPopoverView)
         
         // Set up popover delegate for additional menu-bar behavior
         popover?.delegate = self
         
-        logger?.log("MenuBarView setup complete", level: .debug)
+        logger?.log("MenuBarPopoverView setup complete", level: .debug)
     }
     
     // MARK: - Event Handlers
@@ -171,7 +192,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         do {
             try audioRecorder?.startRecording()
             isRecording = true
-            menuBarView?.updateRecordingState(true)
+            menuBarPopoverView?.updateRecordingState(true)
             
             // Hide our icon and let Apple's native recording indicator show
             menuBarIconManager?.setRecordingState()
@@ -196,7 +217,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
         
         isRecording = false
-        menuBarView?.updateRecordingState(false)
+        menuBarPopoverView?.updateRecordingState(false)
         notificationManager?.showRecordingStopped()
         logger?.log("Audio file successfully saved to: \(audioFileURL.path)", level: .debug)
         menuBarIconManager?.setProcessingState()
@@ -229,7 +250,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         
         // Add to history
         historyManager?.addTranscription(text, audioFileName: audioFileName)
-        menuBarView?.addTranscription(text, audioFileName: audioFileName)
         
         // Paste the transcribed text at cursor
         pasteManager?.pasteText(text) { [weak self] success in
@@ -247,16 +267,60 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
     }
     
+    // MARK: - Settings Window Management
+    private func openSettingsWindow() {
+        logger?.log("Opening settings window", level: .info)
+        
+        if settingsWindow == nil {
+            // Create settings window
+            let settingsView = SettingsWindowView()
+            let hostingController = NSHostingController(rootView: settingsView)
+            
+            settingsWindow = NSWindow(contentViewController: hostingController)
+            settingsWindow?.title = "Speech-to-Text"
+            settingsWindow?.styleMask = [.titled, .closable, .resizable, .miniaturizable]
+            settingsWindow?.setContentSize(NSSize(width: 700, height: 500))
+            settingsWindow?.center()
+            settingsWindow?.delegate = self
+            
+            settingsWindowController = NSWindowController(window: settingsWindow)
+        }
+        
+        // Show in dock and cmd+tab
+        NSApp.setActivationPolicy(.regular)
+        
+        // Show and activate window
+        settingsWindowController?.showWindow(nil)
+        settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    private func closeSettingsWindow() {
+        logger?.log("Closing settings window", level: .info)
+        
+        settingsWindow?.close()
+        settingsWindow = nil
+        settingsWindowController = nil
+        
+        // Hide from dock and cmd+tab
+        NSApp.setActivationPolicy(.accessory)
+    }
+    
+    // MARK: - Window Delegate
+    func windowWillClose(_ notification: Notification) {
+        if notification.object as? NSWindow == settingsWindow {
+            closeSettingsWindow()
+        }
+    }
+    
     // MARK: - Settings Handler
     private func handleSettingsChanged() {
         logger?.log("Settings changed, reloading configuration", level: .info)
-        // Reload settings and update components as needed
-        settingsManager?.loadSettings()
         
         // Refresh hotkey manager with new configuration
         hotkeyManager?.refreshHotkeyConfiguration()
         
-        // Restart server if Whisper settings changed (to pick up new model/language)
+        // Restart server if Whisper model changed
         serverManager?.stopServer()
         startTranscriptionServer()
     }
@@ -268,6 +332,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
         serverManager?.stopServer()
         popover?.performClose(nil)
+        settingsWindow?.close()
+        NotificationCenter.default.removeObserver(self)
         logger?.log("App terminating")
     }
 }

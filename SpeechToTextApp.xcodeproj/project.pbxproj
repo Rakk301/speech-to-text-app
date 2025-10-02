@@ -9,9 +9,6 @@
 /* Begin PBXBuildFile section */
 		000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000968732E24DD7C000173E2 /* HotkeyManager.swift */; };
 		0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0022F3142E53036500C45DA7 /* PermissionManager.swift */; };
-		0057411D2E551E0E00392845 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411B2E551E0E00392845 /* MenuBarView.swift */; };
-		0057411E2E551E0E00392845 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411A2E551E0E00392845 /* HistoryView.swift */; };
-		0057411F2E551E0E00392845 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057411C2E551E0E00392845 /* SettingsView.swift */; };
 		00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00869A142E56E33600D65D58 /* MenuBarIconManager.swift */; };
 		0089707B2E65055C002AB0F8 /* stt-server-py in Resources */ = {isa = PBXBuildFile; fileRef = 0089707A2E65055C002AB0F8 /* stt-server-py */; };
 		00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */; };
@@ -25,15 +22,17 @@
 		00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516F2E24D05200BE5FC7 /* Logger.swift */; };
 		00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51712E24D1F100BE5FC7 /* PasteManager.swift */; };
 		00EA51732E24D1F100BE5FC7 /* TranscriptionServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */; };
+		6A8FDBE42E8E057900D3C68F /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */; };
+		6A8FDBE52E8E057900D3C68F /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */; };
+		6A8FDBE62E8E057900D3C68F /* SettingsWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */; };
+		6A8FDBE72E8E057900D3C68F /* HomeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */; };
+		6AA7D1F72E7E2CF50007EBE4 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6AA7D1F62E7E2CF50007EBE4 /* AppIcon.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		000968732E24DD7C000173E2 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyManager.swift; path = Swift/HotkeyManager.swift; sourceTree = "<group>"; };
 		0022F3142E53036500C45DA7 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PermissionManager.swift; path = Swift/PermissionManager.swift; sourceTree = "<group>"; };
 		0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SpeechToTextApp-Info.plist"; sourceTree = "<group>"; };
-		0057411A2E551E0E00392845 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryView.swift; path = Swift/HistoryView.swift; sourceTree = "<group>"; };
-		0057411B2E551E0E00392845 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = Swift/MenuBarView.swift; sourceTree = "<group>"; };
-		0057411C2E551E0E00392845 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Swift/SettingsView.swift; sourceTree = "<group>"; };
 		00869A142E56E33600D65D58 /* MenuBarIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconManager.swift; path = Swift/MenuBarIconManager.swift; sourceTree = "<group>"; };
 		0089707A2E65055C002AB0F8 /* stt-server-py */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "stt-server-py"; sourceTree = "<group>"; };
 		00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = Swift/HistoryManager.swift; sourceTree = "<group>"; };
@@ -48,6 +47,11 @@
 		00EA516F2E24D05200BE5FC7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Swift/Logger.swift; sourceTree = "<group>"; };
 		00EA51712E24D1F100BE5FC7 /* PasteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PasteManager.swift; path = Swift/PasteManager.swift; sourceTree = "<group>"; };
 		00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServer.swift; path = Swift/TranscriptionServer.swift; sourceTree = "<group>"; };
+		6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeTabView.swift; path = Swift/HomeTabView.swift; sourceTree = "<group>"; };
+		6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarPopoverView.swift; path = Swift/MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsTabView.swift; path = Swift/SettingsTabView.swift; sourceTree = "<group>"; };
+		6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsWindowView.swift; path = Swift/SettingsWindowView.swift; sourceTree = "<group>"; };
+		6AA7D1F62E7E2CF50007EBE4 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +69,11 @@
 		00EA51522E24C05900BE5FC7 = {
 			isa = PBXGroup;
 			children = (
+				6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */,
+				6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */,
+				6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */,
+				6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */,
+				6AA7D1F62E7E2CF50007EBE4 /* AppIcon.icns */,
 				0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */,
 				00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */,
 				00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */,
@@ -81,9 +90,6 @@
 				00EA515C2E24C05900BE5FC7 /* Products */,
 				0089707A2E65055C002AB0F8 /* stt-server-py */,
 				00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */,
-				0057411A2E551E0E00392845 /* HistoryView.swift */,
-				0057411B2E551E0E00392845 /* MenuBarView.swift */,
-				0057411C2E551E0E00392845 /* SettingsView.swift */,
 				00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */,
 			);
 			sourceTree = "<group>";
@@ -163,6 +169,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0089707B2E65055C002AB0F8 /* stt-server-py in Resources */,
+				6AA7D1F72E7E2CF50007EBE4 /* AppIcon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,9 +191,10 @@
 				0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */,
 				00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */,
 				00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */,
-				0057411D2E551E0E00392845 /* MenuBarView.swift in Sources */,
-				0057411E2E551E0E00392845 /* HistoryView.swift in Sources */,
-				0057411F2E551E0E00392845 /* SettingsView.swift in Sources */,
+				6A8FDBE42E8E057900D3C68F /* SettingsTabView.swift in Sources */,
+				6A8FDBE52E8E057900D3C68F /* MenuBarPopoverView.swift in Sources */,
+				6A8FDBE62E8E057900D3C68F /* SettingsWindowView.swift in Sources */,
+				6A8FDBE72E8E057900D3C68F /* HomeTabView.swift in Sources */,
 				00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */,
 				00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */,
 			);

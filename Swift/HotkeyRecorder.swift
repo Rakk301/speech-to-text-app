@@ -1,114 +1,76 @@
-import Foundation
-import Cocoa
+import SwiftUI
 import Carbon
 
 class HotkeyRecorder: ObservableObject {
-    
-    // MARK: - Published Properties
     @Published var isRecording = false
     @Published var currentKeyCode: Int = 0
     @Published var currentModifiers: [String] = []
-    @Published var displayString = ""
+    @Published var displayString: String = "Press any key..."
     
-    // MARK: - Properties
-    private var localMonitor: Any?
-    private let logger = Logger()
+    private var eventMonitor: Any?
     
-    // MARK: - Public Methods
     func startRecording() {
-        guard !isRecording else { return }
-        
         isRecording = true
         currentKeyCode = 0
         currentModifiers = []
-        displayString = "Press keys..."
+        displayString = "Press any key..."
         
-        logger.log("[HotkeyRecorder] Started recording hotkey", level: .info)
-        setupLocalMonitor()
+        // Monitor key down events
+        eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleKeyEvent(event)
+            return nil // Consume the event
+        }
     }
     
     func stopRecording() {
-        guard isRecording else { return }
-        
         isRecording = false
-        localMonitor = nil
-        
-        logger.log("[HotkeyRecorder] Stopped recording hotkey", level: .info)
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
+    }
+    
+    func resetToDefaults() {
+        currentKeyCode = 0
+        currentModifiers = []
+        displayString = "Press any key..."
     }
     
     func getHotkeyConfiguration() -> (keyCode: Int, modifiers: [String]) {
         return (currentKeyCode, currentModifiers)
     }
     
-    func resetToDefaults() {
-        currentKeyCode = 37  // L key
-        currentModifiers = ["option"]
-        updateDisplayString()
-    }
-    
-    // MARK: - Private Methods
-    private func setupLocalMonitor() {
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { [weak self] event in
-            guard let self = self, self.isRecording else { return event }
-            
-            if event.type == .keyDown {
-                self.handleKeyDown(event)
-            } else if event.type == .flagsChanged {
-                self.handleFlagsChanged(event)
-            }
-            
-            return nil // Swallow all events while recording
-        }
-    }
-    
-    private func handleKeyDown(_ event: NSEvent) {
-        let keyCode = Int(event.keyCode)
-        let modifiers = getModifiersFromEvent(event)
+    private func handleKeyEvent(_ event: NSEvent) {
+        currentKeyCode = Int(event.keyCode)
+        currentModifiers = extractModifiers(from: event.modifierFlags)
+        displayString = generateDisplayString()
         
-        // Only accept modifier keys if they're combined with a regular key
-        if !modifiers.isEmpty && keyCode != 0 {
-            currentKeyCode = keyCode
-            currentModifiers = modifiers
-            updateDisplayString()
-            
-            logger.log("[HotkeyRecorder] Captured hotkey: \(displayString)", level: .info)
-            
-            // Stop recording after capturing a valid combination
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.stopRecording()
-            }
+        // Auto-stop recording after capturing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            self?.stopRecording()
         }
     }
     
-    private func handleFlagsChanged(_ event: NSEvent) {
-        // Update modifiers in real-time while recording
-        if isRecording {
-            let modifiers = getModifiersFromEvent(event)
-            currentModifiers = modifiers
-            updateDisplayString()
-        }
-    }
-    
-    private func getModifiersFromEvent(_ event: NSEvent) -> [String] {
+    private func extractModifiers(from flags: NSEvent.ModifierFlags) -> [String] {
         var modifiers: [String] = []
         
-        if event.modifierFlags.contains(.command) {
+        if flags.contains(.command) {
             modifiers.append("command")
         }
-        if event.modifierFlags.contains(.shift) {
+        if flags.contains(.shift) {
             modifiers.append("shift")
         }
-        if event.modifierFlags.contains(.option) {
+        if flags.contains(.option) {
             modifiers.append("option")
         }
-        if event.modifierFlags.contains(.control) {
+        if flags.contains(.control) {
             modifiers.append("control")
         }
         
         return modifiers
     }
     
-    private func updateDisplayString() {
+    private func generateDisplayString() -> String {
         var display = ""
         
         if currentModifiers.contains("command") { display += "⌘" }
@@ -116,16 +78,13 @@ class HotkeyRecorder: ObservableObject {
         if currentModifiers.contains("option") { display += "⌥" }
         if currentModifiers.contains("control") { display += "⌃" }
         
-        if currentKeyCode > 0 {
-            let keyChar = keyCodeToCharacter(currentKeyCode)
-            display += keyChar
-        }
+        let keyChar = keyCodeToCharacter(currentKeyCode)
+        display += keyChar
         
-        displayString = display.isEmpty ? "Press keys..." : display
+        return display
     }
     
     private func keyCodeToCharacter(_ keyCode: Int) -> String {
-        // Simplified mapping for common keys
         switch keyCode {
         case 0: return "A"
         case 1: return "S"
@@ -145,15 +104,6 @@ class HotkeyRecorder: ObservableObject {
         case 16: return "Y"
         case 17: return "T"
         case 37: return "L"
-        case 36: return "Return"
-        case 48: return "Tab"
-        case 49: return "Space"
-        case 51: return "Delete"
-        case 53: return "Escape"
-        case 123: return "←"
-        case 124: return "→"
-        case 125: return "↓"
-        case 126: return "↑"
         default: return "?"
         }
     }
@@ -162,3 +112,5 @@ class HotkeyRecorder: ObservableObject {
         stopRecording()
     }
 }
+
+
