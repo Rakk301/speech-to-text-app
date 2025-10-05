@@ -38,9 +38,9 @@ class LLMProcessor:
     
     def _generate_prompt(self, text: str) -> str:
         """Generate prompt for LLM processing."""
-        # Use custom prompt from config if available
-        custom_prompt = self.config.get("prompt")
-        return custom_prompt.format(text=text)
+        # Use custom prompt from config if available; fall back to pass-through
+        template = self.config.get("prompt") or "{text}"
+        return template.format(text=text)
     
     def process(self, text: str) -> str:
         """

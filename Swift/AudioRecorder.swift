@@ -21,15 +21,16 @@ enum AudioRecorderError: Error, LocalizedError {
 class AudioRecorder {
     
     // MARK: - Properties
-    private let audioEngine = AVAudioEngine()
-    private let inputNode: AVAudioInputNode
+    private var audioEngine: AVAudioEngine?
+    private var inputNode: AVAudioInputNode?
     private var audioFile: AVAudioFile?
     private var recordingURL: URL?
     private var logger: Logger?
+    private var framesWritten: AVAudioFramePosition = 0
+    private var currentSampleRate: Double = 0
     
     // MARK: - Initialization
     init() {
-        inputNode = audioEngine.inputNode
         logger = Logger(componentName: "AudioRecorder")
     }
     
@@ -49,8 +50,21 @@ class AudioRecorder {
             throw AudioRecorderError.fileCreationFailed
         }
         
+        // Lazily create audio engine and input node only when recording starts
+        let engine = AVAudioEngine()
+        audioEngine = engine
+        let input = engine.inputNode
+        inputNode = input
+        
         // Get the native format from the input node
-        let format = inputNode.inputFormat(forBus: 0)
+        let format = input.inputFormat(forBus: 0)
+        currentSampleRate = format.sampleRate
+        framesWritten = 0
+        
+        // Drive the graph so the tap receives buffers even during route changes
+        let mainMixer = engine.mainMixerNode
+        mainMixer.outputVolume = 0.0
+        engine.connect(input, to: mainMixer, format: format)
         
         // Create audio file
         do {
@@ -61,29 +75,30 @@ class AudioRecorder {
         }
         
         // Install tap on input node
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
+        input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             self?.handleAudioBuffer(buffer)
         }
         
         // Start audio engine - this will trigger permission request if needed
         do {
-            try audioEngine.start()
+            engine.prepare()
+            try engine.start()
             logger?.log("Audio recording started successfully", level: .info)
         } catch {
-            inputNode.removeTap(onBus: 0)
+            input.removeTap(onBus: 0)
             logger?.log("Audio engine start failed: \(error.localizedDescription)", level: .error)
             throw AudioRecorderError.recordingFailed
         }
     }
     
     func stopRecording() -> URL? {
-        guard audioEngine.isRunning else { return nil }
+        guard let engine = audioEngine else { return nil }
         
         logger?.log("Stopping audio recording", level: .info)
         
         // Stop audio engine
-        audioEngine.stop()
-        inputNode.removeTap(onBus: 0)
+        engine.stop()
+        inputNode?.removeTap(onBus: 0)
         
         // Close audio file
         audioFile = nil
@@ -91,6 +106,22 @@ class AudioRecorder {
         // Return the recorded file URL
         let url = recordingURL
         recordingURL = nil
+        
+        // Fully release engine and input to avoid keeping mic path open
+        inputNode = nil
+        engine.reset()
+        audioEngine = nil
+        
+        // Diagnostics
+        let seconds = currentSampleRate > 0 ? Double(framesWritten) / currentSampleRate : 0
+        logger?.log("Recorded \(framesWritten) frames (~\(String(format: "%.2f", seconds))s)", level: .debug)
+        if let url = url,
+           let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let fileSize = attributes[.size] as? NSNumber {
+            logger?.log("Recorded file size: \(fileSize.intValue) bytes", level: .debug)
+        }
+        framesWritten = 0
+        currentSampleRate = 0
         
         return url
     }
@@ -109,17 +140,22 @@ class AudioRecorder {
         
         do {
             try audioFile.write(from: buffer)
+            framesWritten += AVAudioFramePosition(buffer.frameLength)
         } catch {
             logger?.log("Failed to write audio buffer: \(error.localizedDescription)", level: .error)
         }
     }
     
     private func cleanup() {
-        if audioEngine.isRunning {
-            audioEngine.stop()
-            inputNode.removeTap(onBus: 0)
+        if let engine = audioEngine {
+            if engine.isRunning {
+                engine.stop()
+            }
+            inputNode?.removeTap(onBus: 0)
         }
         audioFile = nil
         recordingURL = nil
+        inputNode = nil
+        audioEngine = nil
     }
 } 
