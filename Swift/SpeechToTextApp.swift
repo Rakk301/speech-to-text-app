@@ -30,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
     private var menuBarPopoverView: MenuBarPopoverView?
     private var popover: NSPopover?
     private var menuBarIconManager: MenuBarIconManager?
+    private var eventMonitor: Any?
     
     // Settings window
     private var settingsWindow: NSWindow?
@@ -152,7 +153,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
         }
         
         popover = NSPopover()
-        popover?.contentSize = NSSize(width: 220, height: 150)
+        popover?.contentSize = NSSize(width: 160, height: 54)
         popover?.behavior = .transient  // Auto-dismisses when losing focus
         popover?.animates = true
         popover?.contentViewController = NSHostingController(rootView: menuBarPopoverView)
@@ -170,9 +171,32 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
         guard let button = statusItem?.button else { return }
         
         if popover?.isShown == true {
-            popover?.performClose(nil)
+            closePopover()
         } else {
-            popover?.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+            showPopover()
+        }
+    }
+    
+    private func showPopover() {
+        guard let button = statusItem?.button else { return }
+        
+        popover?.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+        
+        // Add event monitor to detect clicks outside the popover
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            if self?.popover?.isShown == true {
+                self?.closePopover()
+            }
+        }
+    }
+    
+    private func closePopover() {
+        popover?.performClose(nil)
+        
+        // Remove event monitor
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
         }
     }
     
@@ -298,7 +322,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
     private func closeSettingsWindow() {
         logger?.log("Closing settings window", level: .info)
         
-        settingsWindow?.close()
+        // Don't call close() if the window is already closing
+        // Just clean up the references
         settingsWindow = nil
         settingsWindowController = nil
         
@@ -309,6 +334,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
     // MARK: - Window Delegate
     func windowWillClose(_ notification: Notification) {
         if notification.object as? NSWindow == settingsWindow {
+            // Window is already closing, just clean up
             closeSettingsWindow()
         }
     }
@@ -331,8 +357,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowD
             _ = audioRecorder?.stopRecording()
         }
         serverManager?.stopServer()
-        popover?.performClose(nil)
-        settingsWindow?.close()
+        closePopover()
+        
+        // Close settings window if open
+        if settingsWindow != nil {
+            settingsWindow?.close()
+            settingsWindow = nil
+            settingsWindowController = nil
+        }
+        
         NotificationCenter.default.removeObserver(self)
         logger?.log("App terminating")
     }

@@ -26,7 +26,6 @@
 		6A8FDBE52E8E057900D3C68F /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */; };
 		6A8FDBE62E8E057900D3C68F /* SettingsWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */; };
 		6A8FDBE72E8E057900D3C68F /* HomeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */; };
-		6AA7D1F72E7E2CF50007EBE4 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 6AA7D1F62E7E2CF50007EBE4 /* AppIcon.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,7 +50,6 @@
 		6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarPopoverView.swift; path = Swift/MenuBarPopoverView.swift; sourceTree = "<group>"; };
 		6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsTabView.swift; path = Swift/SettingsTabView.swift; sourceTree = "<group>"; };
 		6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsWindowView.swift; path = Swift/SettingsWindowView.swift; sourceTree = "<group>"; };
-		6AA7D1F62E7E2CF50007EBE4 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,7 +71,6 @@
 				6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */,
 				6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */,
 				6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */,
-				6AA7D1F62E7E2CF50007EBE4 /* AppIcon.icns */,
 				0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */,
 				00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */,
 				00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */,
@@ -169,7 +166,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				0089707B2E65055C002AB0F8 /* stt-server-py in Resources */,
-				6AA7D1F72E7E2CF50007EBE4 /* AppIcon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
