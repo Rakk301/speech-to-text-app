@@ -266,9 +266,9 @@ class TranscriptionServer {
         // Send the new configuration
         let config: [String: Any] = [
             "model": settingsManager.whisperModel,
-            // "language": settingsManager.whisperLanguage,
-            // "task": settingsManager.whisperTask,
-            // "temperature": settingsManager.whisperTemperature
+            "language": settingsManager.whisperLanguage,
+            "task": settingsManager.whisperTask,
+            "temperature": settingsManager.whisperTemperature
         ]
         
         do {

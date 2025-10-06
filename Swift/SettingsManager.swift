@@ -1,13 +1,20 @@
 import Foundation
 import SwiftUI
 import Yams
+import Carbon
 
 // MARK: - Configuration Models
 struct WhisperConfig: Codable {
     var model: String
-    
+    var task: String
+    var language: String
+    var temperature: Float
+
     enum CodingKeys: String, CodingKey {
         case model
+        case task
+        case language
+        case temperature
     }
 }
 
@@ -54,6 +61,9 @@ class SettingsManager: ObservableObject {
     
     // MARK: - Published Properties
     @Published var whisperModel: String = "small"
+    @Published var whisperTask: String = "transcribe"
+    @Published var whisperLanguage: String = "auto"
+    @Published var whisperTemperature: Float = 0.0
     @Published var hotkeyKeyCode: Int = 37  // L key
     @Published var hotkeyModifiers: [String] = ["option"]
     
@@ -109,7 +119,12 @@ class SettingsManager: ObservableObject {
         
         do {
             let config = AppConfig(
-                whisper: WhisperConfig(model: whisperModel),
+                whisper: WhisperConfig(
+                    model: whisperModel,
+                    task: whisperTask,
+                    language: whisperLanguage,
+                    temperature: whisperTemperature
+                ),
                 hotkey: HotkeyConfig(keyCode: hotkeyKeyCode, modifiers: hotkeyModifiers)
             )
             
@@ -142,6 +157,11 @@ class SettingsManager: ObservableObject {
         logger.log("Hotkey changed", level: .info)
         saveSettings()
     }
+
+    func updateWhisperSettings() {
+        NotificationCenter.default.post(name: .whisperSettingsChanged, object: self)
+        saveSettings()
+    }
     
     // MARK: - Utility Methods
     func getHotkeyDisplayString() -> String {
@@ -150,13 +170,13 @@ class SettingsManager: ObservableObject {
         if hotkeyModifiers.contains("shift") { display += "⇧" }
         if hotkeyModifiers.contains("option") { display += "⌥" }
         if hotkeyModifiers.contains("control") { display += "⌃" }
-        
+
         let keyChar = keyCodeToCharacter(hotkeyKeyCode)
         display += keyChar
-        
+
         return display
     }
-    
+
     func getServerURL() -> String {
         return "http://\(serverHost):\(serverPort)"
     }
@@ -168,6 +188,9 @@ class SettingsManager: ObservableObject {
         
         // Load whisper configuration
         whisperModel = config.whisper.model
+        whisperTask = config.whisper.task
+        whisperLanguage = config.whisper.language
+        whisperTemperature = config.whisper.temperature
         
         // Load hotkey configuration
         hotkeyKeyCode = config.hotkey.keyCode
@@ -185,12 +208,68 @@ class SettingsManager: ObservableObject {
     
     private func setDefaultSettings() {
         whisperModel = "small"
+        whisperTask = "transcribe"
+        whisperLanguage = "auto"
+        whisperTemperature = 0.0
         hotkeyKeyCode = 37  // L key
         hotkeyModifiers = ["option"]
         logger.log("Default settings applied", level: .info)
     }
-    
+
     private func keyCodeToCharacter(_ keyCode: Int) -> String {
+        // Use system APIs for proper keyboard layout support
+        return keyCodeToCharacterWithLayout(UInt16(keyCode), modifiers: 0)
+    }
+
+    private func keyCodeToCharacterWithLayout(_ virtualKeyCode: UInt16, modifiers: UInt32) -> String {
+        // Get current keyboard layout
+        let inputSourceRef = TISCopyCurrentKeyboardInputSource()
+        guard let inputSource = inputSourceRef?.takeUnretainedValue(),
+              let layoutData = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData) else {
+            // Release the input source reference if it was created
+            if let inputSourceRef = inputSourceRef {
+                inputSourceRef.release()
+            }
+            // Fallback to hardcoded mapping if system APIs fail
+            return fallbackKeyCodeToCharacter(Int(virtualKeyCode))
+        }
+
+        let keyLayoutPtr = unsafeBitCast(layoutData, to: UnsafePointer<UCKeyboardLayout>.self)
+
+        var deadKeyState: UInt32 = 0
+        var actualStringLength: Int = 0
+        var unicodeString: [UniChar] = [0, 0, 0, 0] // Buffer for up to 4 Unicode characters
+
+        let status = UCKeyTranslate(
+            keyLayoutPtr,
+            virtualKeyCode,
+            UInt16(kUCKeyActionDown),
+            modifiers,
+            UInt32(LMGetKbdType()),
+            OptionBits(kUCKeyTranslateNoDeadKeysMask),
+            &deadKeyState,
+            unicodeString.count,
+            &actualStringLength,
+            &unicodeString
+        )
+
+        // Release the input source reference
+        if let inputSourceRef = inputSourceRef {
+            inputSourceRef.release()
+        }
+
+        if status == noErr && actualStringLength > 0 {
+            // Convert UniChar array to String
+            let unicodeValue = UInt32(unicodeString[0])
+            if let unicodeScalar = UnicodeScalar(unicodeValue) {
+                return String(unicodeScalar)
+            }
+        }
+        return "?"
+    }
+
+    private func fallbackKeyCodeToCharacter(_ keyCode: Int) -> String {
+        // Keep the original hardcoded mapping as fallback
         switch keyCode {
         case 0: return "A"
         case 1: return "S"

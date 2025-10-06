@@ -4,19 +4,24 @@ struct HomeTabView: View {
     @StateObject private var historyManager = HistoryManager.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Header
-            Text("Transcription History")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-            
-            Divider()
+        VStack(alignment: .leading, spacing: 0) {
+            // Header Section
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Transcription History")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Text("Your recent speech-to-text transcriptions")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 20)
             
             // Transcriptions List
             if historyManager.transcriptions.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Image(systemName: "doc.text")
                         .font(.system(size: 48))
                         .foregroundColor(.secondary)
@@ -33,13 +38,13 @@ struct HomeTabView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    VStack(spacing: 12) {
+                    LazyVStack(spacing: 12) {
                         ForEach(historyManager.transcriptions.prefix(20)) { transcription in
                             TranscriptionCard(transcription: transcription)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
                 }
             }
         }
@@ -53,42 +58,36 @@ struct TranscriptionCard: View {
     @State private var isCopied = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Timestamp
-            HStack {
-                Image(systemName: "clock")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
+        HStack(alignment: .top, spacing: 12) {
+            // Main Content
+            VStack(alignment: .leading, spacing: 8) {
+                // Timestamp
                 Text(formattedDate(transcription.timestamp))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Spacer()
-                
-                // Copy Button
-                Button(action: copyToClipboard) {
-                    HStack(spacing: 4) {
-                        Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                            .font(.caption)
-                        Text(isCopied ? "Copied" : "Copy")
-                            .font(.caption)
-                    }
-                    .foregroundColor(isCopied ? .green : .blue)
-                }
-                .buttonStyle(PlainButtonStyle())
+                // Transcription Text
+                Text(transcription.text)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
-            // Transcription Text
-            Text(transcription.text)
-                .font(.body)
-                .foregroundColor(.primary)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+            
+            // Clipboard Icon Button
+            Button(action: copyToClipboard) {
+                Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(isCopied ? .blue : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .frame(width: 24, height: 24)
         }
-        .padding(12)
+        .padding(16)
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .cornerRadius(12)
     }
     
     private func copyToClipboard() {
@@ -96,9 +95,14 @@ struct TranscriptionCard: View {
         pasteboard.clearContents()
         pasteboard.setString(transcription.text, forType: .string)
         
-        isCopied = true
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isCopied = true
+        }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            isCopied = false
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isCopied = false
+            }
         }
     }
     

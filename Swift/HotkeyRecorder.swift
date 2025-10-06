@@ -3,21 +3,23 @@ import Carbon
 
 class HotkeyRecorder: ObservableObject {
     @Published var isRecording = false
-    @Published var currentKeyCode: Int = 0
-    @Published var currentModifiers: [String] = []
+    @Published var isRecordingComplete = false
     @Published var displayString: String = "Press any key..."
     
     private var eventMonitor: Any?
+    private var recordedKeyCode: Int = 0
+    private var recordedModifiers: [String] = []
     
     func startRecording() {
         isRecording = true
-        currentKeyCode = 0
-        currentModifiers = []
+        isRecordingComplete = false
         displayString = "Press any key..."
+        recordedKeyCode = 0
+        recordedModifiers = []
         
         // Monitor key down events
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleKeyEvent(event)
+            self?.handleKeyDownEvent(event)
             return nil // Consume the event
         }
     }
@@ -31,23 +33,31 @@ class HotkeyRecorder: ObservableObject {
     }
     
     func resetToDefaults() {
-        currentKeyCode = 0
-        currentModifiers = []
+        isRecording = false
+        isRecordingComplete = false
         displayString = "Press any key..."
+        recordedKeyCode = 0
+        recordedModifiers = []
+    }
+    
+    func getRecordedKeysString() -> String {
+        return displayString
     }
     
     func getHotkeyConfiguration() -> (keyCode: Int, modifiers: [String]) {
-        return (currentKeyCode, currentModifiers)
+        return (recordedKeyCode, recordedModifiers)
     }
     
-    private func handleKeyEvent(_ event: NSEvent) {
-        currentKeyCode = Int(event.keyCode)
-        currentModifiers = extractModifiers(from: event.modifierFlags)
-        displayString = generateDisplayString()
+    private func handleKeyDownEvent(_ event: NSEvent) {
+        let keyCode = Int(event.keyCode)
+        let modifiers = extractModifiers(from: event.modifierFlags)
         
-        // Auto-stop recording after capturing
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.stopRecording()
+        // Only record if we have a valid key combination
+        if keyCode > 0 && !modifiers.isEmpty {
+            recordedKeyCode = keyCode
+            recordedModifiers = modifiers
+            displayString = generateDisplayString(from: event)
+            isRecordingComplete = true
         }
     }
     
@@ -70,42 +80,35 @@ class HotkeyRecorder: ObservableObject {
         return modifiers
     }
     
-    private func generateDisplayString() -> String {
+    private func generateDisplayString(from event: NSEvent) -> String {
         var display = ""
         
-        if currentModifiers.contains("command") { display += "⌘" }
-        if currentModifiers.contains("shift") { display += "⇧" }
-        if currentModifiers.contains("option") { display += "⌥" }
-        if currentModifiers.contains("control") { display += "⌃" }
+        // Add modifier symbols in consistent order
+        if recordedModifiers.contains("command") { display += "⌘" }
+        if recordedModifiers.contains("shift") { display += "⇧" }
+        if recordedModifiers.contains("option") { display += "⌥" }
+        if recordedModifiers.contains("control") { display += "⌃" }
         
-        let keyChar = keyCodeToCharacter(currentKeyCode)
-        display += keyChar
+        // Use system APIs to get the character representation
+        let character = getCharacterFromEvent(event)
+        display += character
         
         return display
     }
     
-    private func keyCodeToCharacter(_ keyCode: Int) -> String {
-        switch keyCode {
-        case 0: return "A"
-        case 1: return "S"
-        case 2: return "D"
-        case 3: return "F"
-        case 4: return "H"
-        case 5: return "G"
-        case 6: return "Z"
-        case 7: return "X"
-        case 8: return "C"
-        case 9: return "V"
-        case 11: return "B"
-        case 12: return "Q"
-        case 13: return "W"
-        case 14: return "E"
-        case 15: return "R"
-        case 16: return "Y"
-        case 17: return "T"
-        case 37: return "L"
-        default: return "?"
+    private func getCharacterFromEvent(_ event: NSEvent) -> String {
+        // First try to get the character from the event itself
+        if let characters = event.characters, !characters.isEmpty {
+            return characters.uppercased()
         }
+        
+        // If no character available, try charactersIgnoringModifiers
+        if let charactersIgnoringModifiers = event.charactersIgnoringModifiers, !charactersIgnoringModifiers.isEmpty {
+            return charactersIgnoringModifiers.uppercased()
+        }
+        
+        // If no character representation available, return a generic key indicator
+        return "Key"
     }
     
     deinit {
