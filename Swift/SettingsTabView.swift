@@ -354,7 +354,7 @@ struct KeycapDisplay: View {
     let hotkey: String
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 12) {
             ForEach(parseHotkeyComponents(hotkey), id: \.self) { component in
                 KeycapView(symbol: component)
             }
@@ -390,16 +390,56 @@ struct KeycapView: View {
     
     var body: some View {
         Text(symbol)
-            .font(.system(size: 12, weight: .semibold, design: .rounded))
-            .foregroundColor(.blue)
-            .frame(minWidth: 24, minHeight: 24)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .font(.system(size: 16, weight: .semibold, design: .rounded))
+            .foregroundColor(Color(red: 0.2, green: 0.5, blue: 0.9))
+            .frame(minWidth: 32, minHeight: 32)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
             .background(
-                Color.blue.opacity(0.15)
+                ZStack {
+                    // Outer border/shadow layer
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 0.3, green: 0.5, blue: 0.85),
+                                    Color(red: 0.25, green: 0.45, blue: 0.8)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .padding(-2)
+                    
+                    // Main keycap gradient
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 0.7, green: 0.85, blue: 0.95),
+                                    Color(red: 0.6, green: 0.8, blue: 0.95)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                    
+                    // Top highlight for glossy effect
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.white.opacity(0.6),
+                                    Color.white.opacity(0.0)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+                }
             )
-            .cornerRadius(6)
-            .shadow(color: .blue.opacity(0.3), radius: 1, x: 0, y: 1)
+            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
     }
 }
 
