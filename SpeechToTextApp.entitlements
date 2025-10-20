@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Disable sandboxing — for broader system access -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	<!-- Microphone access - to record speech -->
+	<key>com.apple.security.device.audio-input</key>
+	<true/>
+	<!-- File access - to save audio files, access project folder -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<!-- Allow Unsigned executable memory - Allows Python interpreter execution (JIT compilation) -->
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+	<!-- Network access - to connect to the transcription server -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Network server access - to bind to localhost ports for the transcription server -->
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<!-- Accessibility - to register hotkeys, paste-at-cursor -->
+	<key>com.apple.security.device.accessibility</key>
+	<true/>
+</dict>
+</plist>

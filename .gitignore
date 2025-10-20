@@ -1,6 +1,8 @@
 # Python
 __pycache__/
 .python-version
+Python/~/
+Python/uv.lock/
 
 # Environments
 .env
@@ -10,8 +12,8 @@ __pycache__/
 Logs/
 
 # Xcode user data
-speech-to-text-app/speech-to-text-app.xcodeproj/xcuserdata/
-speech-to-text-app/speech-to-text-app.xcodeproj/project.xcworkspace/xcuserdata/
+SpeechToTextApp.xcodeproj/xcuserdata/
+SpeechToTextApp.xcodeproj/project.xcworkspace/xcuserdata/
 
 # macOS
 .DS_Store

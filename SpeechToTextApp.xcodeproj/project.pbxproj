@@ -1,0 +1,428 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000968732E24DD7C000173E2 /* HotkeyManager.swift */; };
+		0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0022F3142E53036500C45DA7 /* PermissionManager.swift */; };
+		00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00869A142E56E33600D65D58 /* MenuBarIconManager.swift */; };
+		0089707B2E65055C002AB0F8 /* stt-server-py in Resources */ = {isa = PBXBuildFile; fileRef = 0089707A2E65055C002AB0F8 /* stt-server-py */; };
+		00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */; };
+		00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */; };
+		00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */; };
+		00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */; };
+		00E612A82E593BC4002E23F2 /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 00E612A72E593BC4002E23F2 /* Yams */; };
+		00E612AA2E593E66002E23F2 /* HotkeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */; };
+		00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */; };
+		00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */; };
+		00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA516F2E24D05200BE5FC7 /* Logger.swift */; };
+		00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51712E24D1F100BE5FC7 /* PasteManager.swift */; };
+		00EA51732E24D1F100BE5FC7 /* TranscriptionServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */; };
+		6A8FDBE42E8E057900D3C68F /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */; };
+		6A8FDBE52E8E057900D3C68F /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */; };
+		6A8FDBE62E8E057900D3C68F /* SettingsWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */; };
+		6A8FDBE72E8E057900D3C68F /* HomeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		000968732E24DD7C000173E2 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyManager.swift; path = Swift/HotkeyManager.swift; sourceTree = "<group>"; };
+		0022F3142E53036500C45DA7 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PermissionManager.swift; path = Swift/PermissionManager.swift; sourceTree = "<group>"; };
+		0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SpeechToTextApp-Info.plist"; sourceTree = "<group>"; };
+		00869A142E56E33600D65D58 /* MenuBarIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconManager.swift; path = Swift/MenuBarIconManager.swift; sourceTree = "<group>"; };
+		0089707A2E65055C002AB0F8 /* stt-server-py */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "stt-server-py"; sourceTree = "<group>"; };
+		00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = Swift/HistoryManager.swift; sourceTree = "<group>"; };
+		00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = Swift/NotificationManager.swift; sourceTree = "<group>"; };
+		00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsManager.swift; path = Swift/SettingsManager.swift; sourceTree = "<group>"; };
+		00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServerClient.swift; path = Swift/TranscriptionServerClient.swift; sourceTree = "<group>"; };
+		00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HotkeyRecorder.swift; path = Swift/HotkeyRecorder.swift; sourceTree = "<group>"; };
+		00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeechToTextApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioRecorder.swift; path = Swift/AudioRecorder.swift; sourceTree = "<group>"; };
+		00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpeechToTextApp.swift; path = Swift/SpeechToTextApp.swift; sourceTree = "<group>"; };
+		00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeechToTextApp.entitlements; sourceTree = "<group>"; };
+		00EA516F2E24D05200BE5FC7 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = Swift/Logger.swift; sourceTree = "<group>"; };
+		00EA51712E24D1F100BE5FC7 /* PasteManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PasteManager.swift; path = Swift/PasteManager.swift; sourceTree = "<group>"; };
+		00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServer.swift; path = Swift/TranscriptionServer.swift; sourceTree = "<group>"; };
+		6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HomeTabView.swift; path = Swift/HomeTabView.swift; sourceTree = "<group>"; };
+		6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarPopoverView.swift; path = Swift/MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsTabView.swift; path = Swift/SettingsTabView.swift; sourceTree = "<group>"; };
+		6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsWindowView.swift; path = Swift/SettingsWindowView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		00EA51582E24C05900BE5FC7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00E612A82E593BC4002E23F2 /* Yams in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00EA51522E24C05900BE5FC7 = {
+			isa = PBXGroup;
+			children = (
+				6A8FDBE02E8E057900D3C68F /* HomeTabView.swift */,
+				6A8FDBE12E8E057900D3C68F /* MenuBarPopoverView.swift */,
+				6A8FDBE22E8E057900D3C68F /* SettingsTabView.swift */,
+				6A8FDBE32E8E057900D3C68F /* SettingsWindowView.swift */,
+				0022F3162E530BBC00C45DA7 /* SpeechToTextApp-Info.plist */,
+				00AE3B6F2E42D5EB00CD52A8 /* HistoryManager.swift */,
+				00AE3B722E42D5EB00CD52A8 /* NotificationManager.swift */,
+				00AE3B742E42D5EB00CD52A8 /* SettingsManager.swift */,
+				0022F3142E53036500C45DA7 /* PermissionManager.swift */,
+				00EA51712E24D1F100BE5FC7 /* PasteManager.swift */,
+				00EA51742E24D1F100BE5FC7 /* TranscriptionServer.swift */,
+				00EA516E2E24C49D00BE5FC7 /* SpeechToTextApp.entitlements */,
+				00EA516A2E24C16D00BE5FC7 /* AudioRecorder.swift */,
+				00EA516B2E24C16D00BE5FC7 /* SpeechToTextApp.swift */,
+				00869A142E56E33600D65D58 /* MenuBarIconManager.swift */,
+				000968732E24DD7C000173E2 /* HotkeyManager.swift */,
+				00EA516F2E24D05200BE5FC7 /* Logger.swift */,
+				00EA515C2E24C05900BE5FC7 /* Products */,
+				0089707A2E65055C002AB0F8 /* stt-server-py */,
+				00AE3B7E2E42DC0200CD52A8 /* TranscriptionServerClient.swift */,
+				00E612A92E593E66002E23F2 /* HotkeyRecorder.swift */,
+			);
+			sourceTree = "<group>";
+		};
+		00EA515C2E24C05900BE5FC7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00EA515A2E24C05900BE5FC7 /* SpeechToTextApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00EA51672E24C05A00BE5FC7 /* Build configuration list for PBXNativeTarget "SpeechToTextApp" */;
+			buildPhases = (
+				00EA51572E24C05900BE5FC7 /* Sources */,
+				00EA51582E24C05900BE5FC7 /* Frameworks */,
+				00EA51592E24C05900BE5FC7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SpeechToTextApp;
+			packageProductDependencies = (
+				00E612A72E593BC4002E23F2 /* Yams */,
+			);
+			productName = SpeechToTextApp;
+			productReference = 00EA515B2E24C05900BE5FC7 /* SpeechToTextApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		00EA51532E24C05900BE5FC7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					00EA515A2E24C05900BE5FC7 = {
+						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 1640;
+					};
+				};
+			};
+			buildConfigurationList = 00EA51562E24C05900BE5FC7 /* Build configuration list for PBXProject "SpeechToTextApp" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 00EA51522E24C05900BE5FC7;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				00E612A62E593BC4002E23F2 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 00EA515C2E24C05900BE5FC7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				00EA515A2E24C05900BE5FC7 /* SpeechToTextApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		00EA51592E24C05900BE5FC7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0089707B2E65055C002AB0F8 /* stt-server-py in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		00EA51572E24C05900BE5FC7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00EA516C2E24C16D00BE5FC7 /* SpeechToTextApp.swift in Sources */,
+				00869A152E56E33600D65D58 /* MenuBarIconManager.swift in Sources */,
+				00E612AA2E593E66002E23F2 /* HotkeyRecorder.swift in Sources */,
+				00AE3B7F2E42DC0200CD52A8 /* TranscriptionServerClient.swift in Sources */,
+				00EA51722E24D1F100BE5FC7 /* PasteManager.swift in Sources */,
+				00EA51732E24D1F100BE5FC7 /* TranscriptionServer.swift in Sources */,
+				000968742E24DD7C000173E2 /* HotkeyManager.swift in Sources */,
+				00AE3B762E42D5EB00CD52A8 /* NotificationManager.swift in Sources */,
+				0022F3152E53036500C45DA7 /* PermissionManager.swift in Sources */,
+				00AE3B772E42D5EB00CD52A8 /* SettingsManager.swift in Sources */,
+				00AE3B792E42D5EB00CD52A8 /* HistoryManager.swift in Sources */,
+				6A8FDBE42E8E057900D3C68F /* SettingsTabView.swift in Sources */,
+				6A8FDBE52E8E057900D3C68F /* MenuBarPopoverView.swift in Sources */,
+				6A8FDBE62E8E057900D3C68F /* SettingsWindowView.swift in Sources */,
+				6A8FDBE72E8E057900D3C68F /* HomeTabView.swift in Sources */,
+				00EA51702E24D05200BE5FC7 /* Logger.swift in Sources */,
+				00EA516D2E24C16D00BE5FC7 /* AudioRecorder.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		00EA51652E24C05A00BE5FC7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		00EA51662E24C05A00BE5FC7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		00EA51682E24C05A00BE5FC7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = SpeechToTextApp.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J9ALQ7F67F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SpeechToTextApp-Info.plist";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to transcribe your speech.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "";
+				MARKETING_VERSION = 1.0;
+				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.Rakk301.SpeechToTextApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		00EA51692E24C05A00BE5FC7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = SpeechToTextApp.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J9ALQ7F67F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SpeechToTextApp-Info.plist";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to transcribe your speech.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MARKETING_VERSION = 1.0;
+				MICROPHONE_USAGE_DESCRIPTION = "This app needs microphone access to transcribe your speech.";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.Rakk301.SpeechToTextApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00EA51562E24C05900BE5FC7 /* Build configuration list for PBXProject "SpeechToTextApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00EA51652E24C05A00BE5FC7 /* Debug */,
+				00EA51662E24C05A00BE5FC7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00EA51672E24C05A00BE5FC7 /* Build configuration list for PBXNativeTarget "SpeechToTextApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00EA51682E24C05A00BE5FC7 /* Debug */,
+				00EA51692E24C05A00BE5FC7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		00E612A62E593BC4002E23F2 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		00E612A72E593BC4002E23F2 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00E612A62E593BC4002E23F2 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 00EA51532E24C05900BE5FC7 /* Project object */;
+}

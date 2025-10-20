@@ -1,6 +1,6 @@
 # Speech-to-Text Application
 
-A macOS-native speech-to-text utility app that runs offline, triggered by a global hotkey (⌘⇧S), transcribes real-time microphone input, applies LLM-based postprocessing, then pastes the final output at the cursor.
+A macOS-native speech-to-text utility app that runs locally, triggered by a global hotkey, transcribes real-time microphone input, (optionally) applies LLM-based postprocessing, then pastes the final output at the cursor.
 
 ## 🏗️ System Architecture
 
@@ -19,55 +19,33 @@ A macOS-native speech-to-text utility app that runs offline, triggered by a glob
 
 ```
 speech-to-text-app/
-├── Swift/                          # macOS native application components
-│   ├── SpeechToTextApp.swift      # Main SwiftUI app entry point and coordination
-│   ├── SettingsView.swift         # SwiftUI settings interface
-│   ├── NotificationView.swift     # SwiftUI notification and result views
-│   ├── AudioRecorder.swift        # AVAudioEngine wrapper for microphone capture
-│   ├── HotkeyManager.swift        # Global hotkey handling and registration
-│   ├── PasteManager.swift         # Clipboard and paste operations
-│   ├── PythonBridge.swift         # Subprocess communication with Python scripts
-│   ├── Logger.swift               # Logging utilities and file management
-│   ├── Info.plist                 # macOS app configuration and permissions
-├── Python/                        # Machine learning and transcription components
-│   ├── transcribe.py              # Main STT script - orchestrates the pipeline
-│   ├── whisper_wrapper.py         # Whisper model integration and inference
-│   ├── llm_processor.py           # LLM postprocessing for text enhancement
-│   ├── config.py                  # Configuration management and settings loader
-│   ├── pyproject.toml             # Python project dependencies and metadata
-├── Config/                        # Application configuration
-│   └── settings.yaml              # User-configurable settings (hotkeys, models, etc.)
-└── README.md                      # This file - project overview and documentation
+├── Swift/                           # macOS app components
+│   ├── SpeechToTextApp.swift        # App entry & coordination
+│   ├── AudioRecorder.swift          # AVAudioEngine wrapper
+│   ├── HotkeyManager.swift          # Global hotkey registration
+│   ├── PasteManager.swift           # Clipboard & paste operations
+│   ├── TranscriptionServer.swift    # Embedded Python server launcher (uv)
+│   ├── TranscriptionServerClient.swift # HTTP client to server
+│   ├── SettingsManager.swift        # YAML-backed settings
+│   └── ...                          # Other Swift components
+├── stt-server-py/                   # Python transcription server
+│   ├── transcription_server.py      # aiohttp server entrypoint
+│   ├── whisper_STTProvider.py       # Whisper provider
+│   ├── llm_processor.py             # Optional LLM post-processing
+│   ├── config.py                    # Config loader
+│   ├── settings.yaml                # Server settings (YAML)
+│   └── pyproject.toml               # Python deps (uv)
+├── docs/
+│   ├── quickstart.md
+│   ├── architecture.md
+│   ├── configuration.md
+│   ├── development.md
+│   ├── troubleshooting.md
+│   └── artifacts/
+│       └── UI_REDESIGN_PLAN.md
+├── SpeechToTextApp.xcodeproj/
+└── README.md
 ```
-
-### File Descriptions
-
-#### Swift Components
-- **`SpeechToTextApp.swift`**: Main SwiftUI app struct with AppDelegate for lifecycle management and menu bar integration
-- **`SettingsView.swift`**: Modern SwiftUI interface for app configuration and settings
-- **`NotificationView.swift`**: SwiftUI components for status notifications and transcription result display
-- **`AudioRecorder.swift`**: Manages microphone access, audio recording sessions, and file output using AVAudioEngine
-- **`HotkeyManager.swift`**: Registers and handles global hotkey (⌘⇧S) using Carbon framework
-- **`PasteManager.swift`**: Handles clipboard operations and text pasting at cursor position
-- **`PythonBridge.swift`**: Executes Python scripts as subprocesses and manages inter-process communication
-- **`Logger.swift`**: Provides logging utilities with timestamp formatting and file output
-- **`Info.plist`**: macOS app configuration including permissions for microphone and accessibility
-
-#### Python Components
-- **`transcribe.py`**: Main entry point that orchestrates the entire transcription pipeline
-- **`whisper_wrapper.py`**: Encapsulates Whisper model loading, inference, and audio preprocessing
-- **`llm_processor.py`**: Handles LLM-based text postprocessing for grammar correction and enhancement
-- **`config.py`**: Loads and manages configuration from YAML files and environment variables
-- **`pyproject.toml`**: Defines Python dependencies, project metadata, and build configuration
-- **`uv.lock`**: Locked dependency versions for reproducible builds
-
-#### Configuration
-- **`settings.yaml`**: User-configurable settings including hotkey combinations, model paths, and processing options
-
-#### Documentation
-- **`BACKLOG.md`**: Development roadmap, feature requests, and bug tracking
-- **`XCODE_SETUP.md`**: Step-by-step instructions for setting up the Xcode project
-- **`Swift/README.md`**: Swift-specific development guide and setup instructions
 
 ## 🎯 Development Principles
 - Use SwiftUI for modern, native macOS UI components
@@ -77,6 +55,151 @@ speech-to-text-app/
 - CLI-style Python scripts for easy testing and iteration
 - Comprehensive logging for debugging and user feedback
 
-## 🚀 Getting Started
+## ⚙️ Settings Management
 
-See `XCODE_SETUP.md` for detailed setup instructions and `Swift/README.md` for Swift-specific development guidelines.
+The app uses a robust YAML-based configuration system with automatic component reloading:
+
+### Configuration Features
+- **Type-safe YAML parsing** using the Yams package
+- **Automatic settings persistence** to user documents directory
+- **Real-time component updates** when relevant settings change
+- **Comprehensive configuration** covering all app aspects
+
+### Settings Categories
+- **Whisper Configuration**: Model size, language, task, temperature
+- **Server Settings**: Host, port, Python paths
+- **Hotkey Configuration**: Global key combinations
+- **LLM Settings**: Post-processing model and parameters
+- **Audio Settings**: Sample rate, channels, format
+- **Logging Configuration**: File paths and rotation
+
+### Automatic Reloading
+- **Whisper settings changes** → Model reload via API (fallback: restart)
+- **Hotkey configuration changes** → Global hotkeys automatically reload
+- **Server settings changes** → Server automatically restarts
+- **Other settings changes** → Components update in real-time
+
+See [`docs/configuration.md`](docs/configuration.md) for detailed setup instructions.
+
+## 🔧 Building the Project
+
+### Prerequisites
+- Xcode 15+
+- macOS 14+
+- Python 3.12+ with required dependencies
+- uv package manager (for Python dependency management)
+
+### Swift Components Setup
+1. Open the Xcode project in `speech-to-text-app/speech-to-text-app.xcodeproj`
+2. Configure build settings:
+   - Set deployment target to macOS 12.0+
+   - Enable App Sandbox (optional)
+   - Add required frameworks:
+     - AVFoundation
+     - Carbon
+     - AppKit
+     - Foundation
+
+### Python Components Setup
+1. Navigate to the `stt-server-py/` directory
+2. Install dependencies using uv:
+   ```bash
+   cd stt-server-py
+   uv sync
+   ```
+
+### Required Permissions
+The app requires the following permissions:
+- **Microphone** - For audio recording
+- **Accessibility** - For global hotkeys and cursor positioning
+- **Apple Events** - For controlling other apps to paste text
+
+### Dependencies
+
+#### Swift Dependencies
+- **AVFoundation** - Audio recording and playback
+- **Carbon** - Global hotkey management
+- **AppKit** - macOS UI components
+- **Foundation** - Basic functionality
+- **Yams** - YAML configuration parsing and generation
+
+#### Python Dependencies
+- **whisper** - Speech-to-text transcription
+- **ollama** - Local LLM processing
+- **sounddevice** - Audio processing
+- **numpy** - Numerical operations
+- **pyyaml** - Configuration file parsing
+
+## 🏗️ Architecture
+
+The app follows a component-based architecture where each Swift file has a single responsibility:
+
+### Swift Components
+- **SpeechToTextApp** - Coordinates all components and manages the app lifecycle
+- **AudioRecorder** - Handles microphone recording with Whisper-compatible settings (16kHz, mono)
+- **HotkeyManager** - Registers and handles the global hotkey (⌘⇧S)
+- **PasteManager** - Manages clipboard operations and text insertion at cursor position
+- **PythonBridge** - Executes Python scripts for ML processing via subprocess communication
+- **Logger** - Provides timestamped logging for debugging and user feedback
+- **SettingsView** - Modern SwiftUI interface for app configuration
+
+
+### Python Components (stt-server-py)
+- **transcription_server.py** - aiohttp HTTP server exposing transcription endpoints
+- **whisper_STTProvider.py** - Whisper model provider
+- **llm_processor.py** - Optional LLM-based postprocessing
+- **config.py** - Loads YAML configuration
+
+## 🚀 Usage
+
+1. Build and run the app in Xcode
+2. Grant microphone and accessibility permissions when prompted
+3. Press ⌘⇧S to start recording
+4. Speak into the microphone
+5. Press ⌘⇧S again to stop recording
+6. The transcribed text will be pasted at the cursor position
+
+## 🔍 Debugging
+
+The app includes comprehensive logging:
+- Check the log file in `~/Documents/Logs/transcriptions.log`
+- Console output for real-time debugging
+- Error handling with user-friendly alerts
+- Python server output captured and logged when embedded; manual server logs to stdout/stderr
+
+## 📝 Notes
+
+- Audio is recorded at 16kHz mono for optimal Whisper compatibility
+- Temporary audio files are automatically cleaned up
+- The app runs as a menu bar application (LSUIElement = true)
+- Global hotkey requires accessibility permissions
+- Python server is bundled and launched via uv at runtime
+- Dependencies for Python are defined in `stt-server-py/pyproject.toml`
+
+## 🎯 Development Workflow
+
+1. **Swift Development**: Edit Swift files in Xcode for UI and system integration
+2. **Python Development**: Edit Python scripts in your preferred editor
+3. **Testing**: Use the test bridge functionality to verify Python communication
+4. **Building**: Xcode bundles `stt-server-py/` as a resource; the app uses `uv` at runtime
+5. **Deployment**: Ensure `uv` is installed on target machines for embedded server
+
+## 🔧 Configuration
+
+- The app maintains a YAML at `~/Library/Application Support/SpeechToTextApp/settings.yaml`.
+- The embedded/manually run Python server reads that same file by default.
+- Common fields:
+  - `whisper.model`, `whisper.language`, `whisper.task`, `whisper.temperature`
+  - `hotkey.key_code`, `hotkey.modifiers`
+  - `server.host`, `server.port`, `server.uv_path`
+  - Optional: `llm.enabled`, `llm.model`, `llm.base_url`, `llm.temperature`, `llm.max_tokens`, `llm.prompt`
+
+See `docs/configuration.md` for full details and examples.
+
+## 📚 Documentation
+- Quickstart: [`docs/quickstart.md`](docs/quickstart.md)
+- Architecture: [`docs/architecture.md`](docs/architecture.md)
+- Configuration: [`docs/configuration.md`](docs/configuration.md)
+- Development: [`docs/development.md`](docs/development.md)
+- Troubleshooting: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+- UI Redesign Plan (artifact): [`docs/artifacts/UI_REDESIGN_PLAN.md`](docs/artifacts/UI_REDESIGN_PLAN.md)

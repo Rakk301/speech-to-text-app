@@ -1,0 +1,45 @@
+---
+description: Xcode Project Structure & Management Rules
+globs:
+alwaysApply: false
+---
+# Xcode Project Structure & File Management Rule
+
+## Project Structure
+- Xcode project file (`SpeechToTextApp.xcodeproj`) is in the project root.
+- All Swift source files are in the `Swift/` directory.
+- Python scripts are in the `Python/` directory.
+- Configuration files are in the `Config/` directory.
+- No unnecessary nesting; each language/component is organized by folder.
+
+## Adding Files
+- Add new Swift files to the `Swift/` directory.
+- In Xcode: File → Add Files to "SpeechToTextApp"…
+  - Select files from `Swift/`, choose "Reference file in place", and check the app target.
+- Add config or Python directories as folder references (blue folder) for visibility and management.
+- Reference config files in place; access them in Swift using relative paths.
+
+## Project Management
+- Always check target membership when adding files.
+- Use `.gitignore` to ignore user-specific Xcode files (`xcuserdata/`), but keep project files (e.g., `project.pbxproj`) in version control.
+- Let Xcode manage `Info.plist` and entitlements automatically via the UI.
+
+## Capabilities & Permissions
+- Use the Signing & Capabilities tab to add App Sandbox, Microphone, and other permissions.
+- Xcode will create/update the entitlements file as needed.
+
+## Build & Run (Xcode Only)
+- Use Xcode's built-in tools
+- Use ⌘B to build, ⌘R to run
+- Use Xcode's debugger, console, and UI previews for development
+- Use Product → Clean Build Folder (⌘⇧K) to clean builds
+- Use Product → Build For → Running to build for specific destinations
+
+## Summary Table
+| Task                        | How to Do It in Xcode                                 |
+|-----------------------------|-------------------------------------------------------|
+| Add Swift file              | File → Add Files… → Reference in place, check target  |
+| Add config/Python directory | File → Add Files… → Reference in place (blue folder)  |
+| Add capability/permission   | Signing & Capabilities tab                            |
+| Manage Info.plist/entitlements | Let Xcode handle automatically                     |
+| Ignore user-specific files  | Use `.gitignore` for `xcuserdata/`                    |
