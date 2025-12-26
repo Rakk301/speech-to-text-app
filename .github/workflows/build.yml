@@ -18,15 +18,7 @@ jobs:
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.2'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install Python dependencies
-        run: |
-          cd stt-server-py
-          uv sync
+          xcode-version: '16.0'
 
       - name: Build App
         run: |
