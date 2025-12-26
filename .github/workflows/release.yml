@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.0'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Python dependencies
+        run: |
+          cd stt-server-py
+          uv sync
+
+      - name: Build App for Release
+        run: |
+          xcodebuild -project SpeechToTextApp.xcodeproj \
+            -scheme SpeechToTextApp \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -archivePath $RUNNER_TEMP/SpeechToTextApp.xcarchive \
+            archive
+
+      - name: Export App
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/SpeechToTextApp.xcarchive \
+            -exportPath $RUNNER_TEMP/export \
+            -exportOptionsPlist ExportOptions.plist || \
+          cp -R $RUNNER_TEMP/SpeechToTextApp.xcarchive/Products/Applications/SpeechToTextApp.app $RUNNER_TEMP/export/
+
+      - name: Create ZIP
+        run: |
+          cd $RUNNER_TEMP/export
+          zip -r SpeechToTextApp.zip SpeechToTextApp.app
+
+      - name: Get SHA256
+        id: sha
+        run: |
+          SHA=$(shasum -a 256 $RUNNER_TEMP/export/SpeechToTextApp.zip | awk '{print $1}')
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ runner.temp }}/export/SpeechToTextApp.zip
+          body: |
+            ## Installation
+
+            ### Homebrew (Recommended)
+            brew install --cask speechtotextapp
+
+            ### Manual Download
+            1. Download `SpeechToTextApp.zip` below
+            2. Unzip and move to Applications
+            3. On first launch: System Settings → Privacy & Security → Open Anyway
+
+            ## SHA256
+            ```
+            ${{ steps.sha.outputs.sha256 }}
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

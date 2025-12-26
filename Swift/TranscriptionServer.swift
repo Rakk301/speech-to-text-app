@@ -83,7 +83,7 @@ class TranscriptionServer {
 
         // Check if the specified path exists
         if !FileManager.default.fileExists(atPath: uvPath) {
-            logger.log("uv executable not found at: \(uvPath)", level: .error)
+            logger.log("uv executable not found at: \(uvPath). Install via: brew install uv", level: .error)
             completion(false)
             return
         }
